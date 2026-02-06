@@ -1,11 +1,16 @@
 // アラーム音再生ユーティリティ
 
-// TODO: Add error handling for AudioContext creation failures
+// Fixed: Add error handling for AudioContext creation failures
 // AudioContextの再利用
 let audioContext = null;
 const getAudioContext = () => {
   if (!audioContext) {
-    audioContext = new (window.AudioContext || window.webkitAudioContext)();
+    try {
+      audioContext = new (window.AudioContext || window.webkitAudioContext)();
+    } catch (error) {
+      console.error('AudioContext creation failed:', error);
+      return null;
+    }
   }
   return audioContext;
 };
@@ -13,6 +18,12 @@ const getAudioContext = () => {
 export const playAlarmSound = (audioContext, type) => {
   // audioContextがnullの場合は内部で取得
   const ctx = audioContext || getAudioContext();
+
+  // AudioContextが利用できない場合はスキップ
+  if (!ctx) {
+    console.warn('AudioContext not available, skipping sound playback');
+    return;
+  }
 
   switch(type) {
     case 'beep':
@@ -121,6 +132,13 @@ const playAscendingSound = (audioContext) => {
 // プレビュー再生関数
 export const playAlarmPreview = (alarmType) => {
   const audioContext = getAudioContext();
+
+  // AudioContextが利用できない場合はスキップ
+  if (!audioContext) {
+    console.warn('AudioContext not available, cannot play preview');
+    return;
+  }
+
   const duration = 5; // 5秒間
 
   const playMultiple = (soundFn) => {

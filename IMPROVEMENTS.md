@@ -8,7 +8,7 @@ This document lists the improvements identified during code review, prioritized 
 - [x] Fix memory leaks in `useScheduledTimer.js`: Add cleanup for setTimeout/setInterval on component unmount.
 
 ## Medium Priority (Stability Improvements)
-- [ ] Add error handling in `alarmSounds.js` and `useScheduledTimer.js`: Handle AudioContext creation failures and Notification permission denials.
+- [x] Add error handling in `alarmSounds.js` and `useScheduledTimer.js`: Handle AudioContext creation failures and Notification permission denials.
 - [ ] Fix useMemo dependency array in `Timer.jsx`: Ensure `currentTimeInSeconds` updates in real-time.
 
 ## Low Priority (Quality Enhancements)
