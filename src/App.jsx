@@ -1,7 +1,7 @@
 import { useEffect } from 'react';
+import './App.css';
 import Timer from './components/Timer';
 import { TimerProvider, useTimerContext } from './contexts/TimerContext.jsx';
-import './App.css';
 
 function AppContent() {
   const { globalSettings, updateSettings } = useTimerContext();
@@ -21,7 +21,7 @@ function AppContent() {
     <div className="app-wrapper">
       <header className="app-header">
         <h1>LR Timer</h1>
-        <button 
+        <button
           onClick={toggleTheme}
           className="theme-toggle"
           aria-label={`Switch to ${globalSettings.theme === 'dark' ? 'light' : 'dark'} theme`}
