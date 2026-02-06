@@ -114,6 +114,8 @@ html[data-theme='light'] {
   text-shadow: var(--shadow-text);
   font-weight: 300;
   letter-spacing: 1px;
+  position: relative;
+  z-index: 10;
 }
 
 .date-display {
@@ -470,7 +472,7 @@ html[data-theme='light'] {
   background: var(--background-overlay);
   border: 1px solid var(--border-primary);
   border-radius: var(--border-radius-xs);
-  color: var(--primary-color);
+  color: var(--text-color);
   font-size: var(--font-size-small);
   cursor: pointer;
   transition: all var(--transition-normal);
@@ -488,8 +490,19 @@ html[data-theme='light'] {
 }
 
 .alarm-select option {
-  background: #1a1a2e;
+  background: var(--background-modal-content);
   color: var(--text-color);
+  background-color: var(--background-modal-content);
+}
+
+html[data-theme='light'] .alarm-select option {
+  background: #ffffff;
+  color: #1f2937;
+}
+
+html[data-theme='dark'] .alarm-select option {
+  background: #1a1a2e;
+  color: #e0e0e0;
 }
 
 .btn-play {
