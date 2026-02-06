@@ -15,7 +15,7 @@ This document lists the improvements identified during code review, prioritized 
 - [x] Improve accessibility in `Timer.jsx`: Add aria-labels to buttons and support keyboard navigation.
 - [x] Refactor code: Consolidate constants, unify comments to English, remove unused variables.
 - [x] Add features: Persist settings with localStorage, add theme toggle.
-- [ ] Add tests: Introduce Jest and React Testing Library for utility functions and components.
+- [x] Add tests: Introduce Jest and React Testing Library for utility functions and components.
 - [x] Update documentation: Revise README.md with project description and usage instructions.
 
 ## Bug Fixes (Theme Support)
