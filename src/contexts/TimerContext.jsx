@@ -1,9 +1,17 @@
-import { createContext, useContext, useState } from 'react';
+import { createContext, useContext, useState, useEffect } from 'react';
 
-// タイマー設定用のContextを作成
+// Timer configuration context
 const TimerContext = createContext();
 
-// Contextの値を使用するためのカスタムフック
+const DEFAULT_SETTINGS = {
+  defaultAlarmType: 'beep',
+  enableNotifications: true,
+  theme: 'dark'
+};
+
+const STORAGE_KEY = 'lrtimer_settings';
+
+// Custom hook to use TimerContext
 // eslint-disable-next-line react-refresh/only-export-components
 export const useTimerContext = () => {
   const context = useContext(TimerContext);
@@ -13,14 +21,31 @@ export const useTimerContext = () => {
   return context;
 };
 
-// Context Providerコンポーネント
+// Load settings from localStorage
+const loadSettings = () => {
+  try {
+    const stored = localStorage.getItem(STORAGE_KEY);
+    if (stored) {
+      return JSON.parse(stored);
+    }
+  } catch (error) {
+    console.error('Failed to load settings from localStorage:', error);
+  }
+  return DEFAULT_SETTINGS;
+};
+
+// Context Provider component
 export function TimerProvider({ children }) {
-  // グローバルなタイマー設定を管理
-  const [globalSettings, setGlobalSettings] = useState({
-    defaultAlarmType: 'beep',
-    enableNotifications: true,
-    theme: 'dark'
-  });
+  const [globalSettings, setGlobalSettings] = useState(loadSettings());
+
+  // Persist settings to localStorage whenever they change
+  useEffect(() => {
+    try {
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(globalSettings));
+    } catch (error) {
+      console.error('Failed to save settings to localStorage:', error);
+    }
+  }, [globalSettings]);
 
   const updateSettings = (newSettings) => {
     setGlobalSettings(prev => ({ ...prev, ...newSettings }));
