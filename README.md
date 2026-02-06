@@ -13,17 +13,22 @@ Lineage Remastered features bosses that spawn at specific, recurring times. LR T
 - 🔔 **Multi-Stage Notifications**: 15-minute, 5-minute, and target time alerts
 - 🔊 **Multiple Alarm Sounds**: Choose from 5 different programmatically generated sounds (beep, low, phone, pulse, ascending)
 - 📢 **Browser Notifications**: Native browser notifications with audio alerts
+- 🌓 **Dark/Light Theme**: Toggle between dark and light themes with persistent storage
+- 💾 **Settings Persistence**: User preferences saved to localStorage automatically
+- ♿ **Accessibility**: Full ARIA labels and keyboard navigation support
 - ⚡ **Modern Stack**: React 19 with Vite for fast development and hot module replacement
 
 ## Project Structure
 
 ```
 src/
+├── App.jsx                    # Main app component with theme toggle
+├── App.css                    # Global app styles and theme variables
 ├── components/
 │   ├── Timer.jsx              # Main UI component
 │   └── CircularProgress.jsx   # SVG-based progress visualization
 ├── contexts/
-│   └── TimerContext.jsx       # Global settings context
+│   └── TimerContext.jsx       # Global settings context with localStorage
 ├── hooks/
 │   └── useScheduledTimer.js   # Timer logic and notification management
 ├── styles/
@@ -63,6 +68,28 @@ Create an optimized production build:
 ```bash
 npm run build
 ```
+
+## Usage Guide
+
+### Basic Usage
+
+1. **Start the application**: Open the app in your browser
+2. **Set the target time**: Use the +/- buttons to adjust hours, minutes, and seconds
+3. **Choose alarm sound**: Select from the dropdown and preview if desired
+4. **Click "開始" (Start)**: The timer will begin monitoring for the target time
+5. **Notifications**: You'll receive notifications at 15 min, 5 min, and at the target time
+
+### Settings & Customization
+
+- **Theme Toggle**: Click the sun/moon icon in the header to switch between dark and light themes
+- **Alarm Sound**: Select your preferred sound from the dropdown (changes are saved automatically)
+- **Notifications**: All settings persist automatically using browser localStorage
+
+### Keyboard Navigation
+
+- Use arrow keys to increment/decrement time values (when focused on time adjustment buttons)
+- Tab to navigate between buttons
+- Space/Enter to activate buttons
 
 ### Preview
 
@@ -106,11 +133,13 @@ npm run lint
 
 ## Settings
 
-Access global settings through the Timer context:
+The application automatically saves all settings to browser localStorage:
 
-- **Default Alarm Type**: Select your preferred alarm sound
-- **Enable Notifications**: Toggle browser notifications on/off
-- **Theme**: Customize the application appearance
+- **Theme**: Dark or light theme preference (persisted)
+- **Default Alarm Type**: Select your preferred alarm sound (persisted)
+- **Enable Notifications**: Toggle browser notifications on/off (persisted)
+
+All settings changes are saved automatically and restored when you return to the app.
 
 ## Browser Support
 

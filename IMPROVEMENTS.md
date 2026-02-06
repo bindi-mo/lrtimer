@@ -16,7 +16,7 @@ This document lists the improvements identified during code review, prioritized 
 - [x] Refactor code: Consolidate constants, unify comments to English, remove unused variables.
 - [x] Add features: Persist settings with localStorage, add theme toggle.
 - [ ] Add tests: Introduce Jest and React Testing Library for utility functions and components.
-- [ ] Update documentation: Revise README.md with project description and usage instructions.
+- [x] Update documentation: Revise README.md with project description and usage instructions.
 
 ## Implementation Notes
 - Use VS Code TODO comments (e.g., `// TODO: description`) in code for tracking.
