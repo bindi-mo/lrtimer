@@ -18,6 +18,10 @@ This document lists the improvements identified during code review, prioritized 
 - [ ] Add tests: Introduce Jest and React Testing Library for utility functions and components.
 - [x] Update documentation: Revise README.md with project description and usage instructions.
 
+## Bug Fixes (Theme Support)
+- [x] Fix theme support for CircularProgress: Update progress background stroke to use CSS variable for proper visibility in light theme.
+- [x] Fix theme support for Modal: Update modal content background to use theme-aware variable for proper contrast.
+
 ## Implementation Notes
 - Use VS Code TODO comments (e.g., `// TODO: description`) in code for tracking.
 - Test changes with `npm run dev` and `npm run lint`.
