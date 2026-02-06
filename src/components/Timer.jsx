@@ -110,6 +110,7 @@ export default function Timer() {
             isStarting={timeLeft === null}
           />
           <button
+            type="button"
             onClick={toggleTheme}
             className="theme-toggle-mobile"
             aria-label={`Switch to ${globalSettings.theme === 'dark' ? 'light' : 'dark'} theme`}
@@ -146,7 +147,11 @@ export default function Timer() {
             ) : (
               // Edit mode - Modal on mobile, inline on desktop
               <>
-                <div className="edit-mode-overlay" />
+                <div
+                  className="edit-mode-overlay"
+                  aria-hidden="true"
+                  role="presentation"
+                />
                 <div className="timer-edit-modal">
                 <div className="alarm-selector">
                   <label htmlFor="alarm-select">アラーム音:</label>
