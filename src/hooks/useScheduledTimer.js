@@ -47,13 +47,20 @@ export const useScheduledTimer = (targetHour, targetMinute, targetSecond) => {
   });
   const animationTimeoutRef = useRef(null);
   const alarmIntervalRef = useRef(null);
+  const autoRestartTimeoutRef = useRef(null);
+  const autoRestartStartTimeoutRef = useRef(null);
 
   const playNotification = (message = '完了', alarmType = 'beep', showBrowserNotification = true) => {
+    // ブラウザ通知が有効な場合のみ送信
     if (showBrowserNotification && 'Notification' in window && Notification.permission === 'granted') {
-      new Notification('タイマー', {
-        body: message,
-        icon: '⏰',
-      });
+      try {
+        new Notification('タイマー', {
+          body: message,
+          icon: '⏰',
+        });
+      } catch (error) {
+        console.error('Failed to send notification:', error);
+      }
     }
 
     // AudioContextはalarmSounds.jsで管理されるため、ここでは直接使用しない
@@ -85,18 +92,34 @@ export const useScheduledTimer = (targetHour, targetMinute, targetSecond) => {
   };
 
   const handleStart = () => {
-    // TODO: Add error handling for Notification permission denials
-    if (!notificationRef.current.permission) {
-      if ('Notification' in window && Notification.permission !== 'granted') {
-        Notification.requestPermission();
+    // Fixed: Add error handling for Notification permission denials
+    if ('Notification' in window) {
+      if (Notification.permission === 'granted') {
+        notificationRef.current.permission = true;
+      } else if (Notification.permission !== 'denied') {
+        // ユーザーまだ選択していない場合のみ要求
+        Notification.requestPermission()
+          .then((permission) => {
+            notificationRef.current.permission = permission === 'granted';
+          })
+          .catch((error) => {
+            console.error('Notification permission request failed:', error);
+            notificationRef.current.permission = false;
+          });
+      } else {
+        // ユーザーが拒否している
+        notificationRef.current.permission = false;
       }
-      notificationRef.current.permission = true;
+    } else {
+      console.warn('Notifications not supported in this browser');
+      notificationRef.current.permission = false;
     }
+
     notificationRef.current = {
       prev15min: null,
       prev5min: null,
       prevFinal: null,
-      permission: true,
+      permission: notificationRef.current.permission,
       isFirstUpdate: false,
     };
     setIsScheduledRunning(true);
@@ -106,16 +129,36 @@ export const useScheduledTimer = (targetHour, targetMinute, targetSecond) => {
     setIsScheduledRunning(false);
   };
 
+  // Cleanup on component unmount
+  useEffect(() => {
+    return () => {
+      // すべてのタイマーをクリア
+      if (alarmIntervalRef.current) {
+        clearInterval(alarmIntervalRef.current);
+      }
+      if (animationTimeoutRef.current) {
+        clearTimeout(animationTimeoutRef.current);
+      }
+      if (autoRestartTimeoutRef.current) {
+        clearTimeout(autoRestartTimeoutRef.current);
+      }
+      if (autoRestartStartTimeoutRef.current) {
+        clearTimeout(autoRestartStartTimeoutRef.current);
+      }
+    };
+  }, []);
+
   // 開始前に残り時間をリアルタイム更新
   useEffect(() => {
     if (!isScheduledRunning) {
-      // 初回に即座に計算
-      const now = new Date();
-      const timeInSeconds = now.getHours() * 3600 + now.getMinutes() * 60 + now.getSeconds();
-      const targetInSeconds = calculateTargetTimeInSeconds(targetHour, targetMinute, targetSecond);
-      const newTimeLeft = calculateTimeLeft(targetInSeconds, timeInSeconds);
-      console.log('Setting scheduledTimeLeft:', newTimeLeft / 3600, 'hours');
-      setScheduledTimeLeft(newTimeLeft);
+      // 初回計算を遅延実行（マウント直後）
+      const initialTimeout = setTimeout(() => {
+        const now = new Date();
+        const timeInSeconds = now.getHours() * 3600 + now.getMinutes() * 60 + now.getSeconds();
+        const targetInSeconds = calculateTargetTimeInSeconds(targetHour, targetMinute, targetSecond);
+        const newTimeLeft = calculateTimeLeft(targetInSeconds, timeInSeconds);
+        setScheduledTimeLeft(newTimeLeft);
+      }, 0);
 
       const interval = setInterval(() => {
         const now = new Date();
@@ -124,7 +167,10 @@ export const useScheduledTimer = (targetHour, targetMinute, targetSecond) => {
         const newTimeLeft = calculateTimeLeft(targetInSeconds, timeInSeconds);
         setScheduledTimeLeft(newTimeLeft);
       }, 1000);
-      return () => clearInterval(interval);
+      return () => {
+        clearTimeout(initialTimeout);
+        clearInterval(interval);
+      };
     }
   }, [isScheduledRunning, targetHour, targetMinute, targetSecond]);
 
@@ -150,10 +196,11 @@ export const useScheduledTimer = (targetHour, targetMinute, targetSecond) => {
           notificationRef.current.isFirstUpdate = false;
         }
 
-// TODO: Fix notification timing logic - relax strict second-based comparisons to prevent missed notifications
-        // 15分前の通知
-        if (notificationRef.current.prevSecondsLeft === NOTIFICATION_THRESHOLDS.PRE_15_TRIGGER &&
-            secondsLeft === NOTIFICATION_THRESHOLDS.PRE_15_TARGET &&
+        // Fixed: Relax strict second-based comparisons to prevent missed notifications
+        // 前のフレームが閾値以上で、現在のフレームが閾値以下の場合に通知をトリガー
+        // 15分前の通知（901秒 → 900秒以下に到達したら発動）
+        if ((notificationRef.current.prevSecondsLeft === null || notificationRef.current.prevSecondsLeft > NOTIFICATION_THRESHOLDS.PRE_15_TARGET) &&
+            secondsLeft <= NOTIFICATION_THRESHOLDS.PRE_15_TARGET &&
             notificationRef.current.prev15min !== NOTIFICATION_THRESHOLDS.PRE_15_TARGET) {
           notificationRef.current.prev15min = NOTIFICATION_THRESHOLDS.PRE_15_TARGET;
           setModalMessage('15分前です');
@@ -161,9 +208,9 @@ export const useScheduledTimer = (targetHour, targetMinute, targetSecond) => {
           startAlarmForDuration(NOTIFICATION_THRESHOLDS.ALARM_DURATION, 'beep'); // 15秒間アラームを鳴らす
         }
 
-        // 5分前の通知
-        if (notificationRef.current.prevSecondsLeft === NOTIFICATION_THRESHOLDS.PRE_5_TRIGGER &&
-            secondsLeft === NOTIFICATION_THRESHOLDS.PRE_5_TARGET &&
+        // 5分前の通知（301秒 → 300秒以下に到達したら発動）
+        if ((notificationRef.current.prevSecondsLeft === null || notificationRef.current.prevSecondsLeft > NOTIFICATION_THRESHOLDS.PRE_5_TARGET) &&
+            secondsLeft <= NOTIFICATION_THRESHOLDS.PRE_5_TARGET &&
             notificationRef.current.prev5min !== NOTIFICATION_THRESHOLDS.PRE_5_TARGET) {
           notificationRef.current.prev5min = NOTIFICATION_THRESHOLDS.PRE_5_TARGET;
           playNotification('5分前', 'beep');
@@ -171,8 +218,8 @@ export const useScheduledTimer = (targetHour, targetMinute, targetSecond) => {
 
         notificationRef.current.prevSecondsLeft = secondsLeft;
 
-        // 指定時刻（0秒の時のみ）
-        if (secondsLeft === NOTIFICATION_THRESHOLDS.COMPLETION && notificationRef.current.prevFinal !== NOTIFICATION_THRESHOLDS.COMPLETION) {
+        // 指定時刻（0秒以下に到達したら発動）
+        if (secondsLeft <= NOTIFICATION_THRESHOLDS.COMPLETION && notificationRef.current.prevFinal !== NOTIFICATION_THRESHOLDS.COMPLETION) {
           notificationRef.current.prevFinal = NOTIFICATION_THRESHOLDS.COMPLETION;
           setIsAchieved(true);
 
@@ -188,11 +235,17 @@ export const useScheduledTimer = (targetHour, targetMinute, targetSecond) => {
               prevSecondsLeft: null,
             };
 
-          // TODO: Fix memory leaks - add cleanup for setTimeout/setInterval on component unmount
-          // 5分待機してから自動開始
-            setTimeout(() => {
+          // Fixed: Add cleanup for setTimeout/setInterval on component unmount
+            // 5分待機してから自動開始
+            if (autoRestartTimeoutRef.current) {
+              clearTimeout(autoRestartTimeoutRef.current);
+            }
+            autoRestartTimeoutRef.current = setTimeout(() => {
               setIsScheduledRunning(false);
-              setTimeout(() => {
+              if (autoRestartStartTimeoutRef.current) {
+                clearTimeout(autoRestartStartTimeoutRef.current);
+              }
+              autoRestartStartTimeoutRef.current = setTimeout(() => {
                 handleStart();
               }, 100);
             }, NOTIFICATION_THRESHOLDS.AUTO_RESTART_DELAY * 1000);
