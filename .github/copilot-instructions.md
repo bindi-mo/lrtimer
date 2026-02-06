@@ -52,6 +52,7 @@ const { globalSettings, updateSettings } = useTimerContext();
 - Code modifications are automatically reflected via Vite HMR (Hot Module Replacement)
 - No manual build or test execution required after changes
 - Changes are immediately visible in the browser during development
+- **When user runs `npm run dev`: do NOT suggest browser reloads** - Changes are automatically updated via Vite HMR
 
 ## Common Tasks
 - **Add New Alarm Sound**: Extend `playAlarmSound()` switch in `alarmSounds.js`
