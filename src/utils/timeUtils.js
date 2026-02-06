@@ -29,7 +29,7 @@ export const calculateTimeLeft = (targetSeconds, currentSeconds) => {
   const TWELVE_HOURS = 12 * 3600;
   let secondsLeft = targetSeconds - currentSeconds;
 
-  if (secondsLeft < 0) {
+  if (secondsLeft <= 0) {
     secondsLeft += TWELVE_HOURS;
   } else if (secondsLeft > TWELVE_HOURS) {
     secondsLeft -= TWELVE_HOURS;

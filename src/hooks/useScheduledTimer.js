@@ -178,11 +178,7 @@ export const useScheduledTimer = (targetHour, targetMinute, targetSecond) => {
         const timeInSeconds = now.getHours() * 3600 + now.getMinutes() * 60 + now.getSeconds();
         const targetInSeconds = calculateTargetTimeInSeconds(targetHour, targetMinute, targetSecond);
 
-        let secondsLeft = targetInSeconds - timeInSeconds;
-
-        if (secondsLeft < 0) {
-          secondsLeft += TWELVE_HOURS;
-        }
+        const secondsLeft = calculateTimeLeft(targetInSeconds, timeInSeconds);
 
         if (!notificationRef.current.isFirstUpdate) {
           setScheduledTimeLeft(secondsLeft);
