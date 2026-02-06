@@ -12,7 +12,7 @@ This document lists the improvements identified during code review, prioritized 
 - [x] Fix useMemo dependency array in `Timer.jsx`: Ensure `currentTimeInSeconds` updates in real-time.
 
 ## Low Priority (Quality Enhancements)
-- [ ] Improve accessibility in `Timer.jsx`: Add aria-labels to buttons and support keyboard navigation.
+- [x] Improve accessibility in `Timer.jsx`: Add aria-labels to buttons and support keyboard navigation.
 - [ ] Refactor code: Consolidate constants, unify comments to English, remove unused variables.
 - [ ] Add features: Persist settings with localStorage, add theme toggle.
 - [ ] Add tests: Introduce Jest and React Testing Library for utility functions and components.

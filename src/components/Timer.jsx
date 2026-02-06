@@ -96,12 +96,14 @@ export default function Timer() {
         {!isScheduledRunning && (
           <div className="timer-input-container">
             <div className="alarm-selector">
+              <label htmlFor="alarm-select">アラーム音:</label>
               <select
                 id="alarm-select"
                 value={selectedAlarm}
                 onChange={(e) => setSelectedAlarm(e.target.value)}
                 disabled={isScheduledRunning}
                 className="alarm-select"
+                aria-label="アラーム音の種類を選択"
               >
                 <option value="beep">ビープ音</option>
                 <option value="low">低いビープ音</option>
@@ -113,36 +115,94 @@ export default function Timer() {
                 onClick={handleAlarmPreview}
                 disabled={isScheduledRunning}
                 className="btn-play"
-                title="5秒間プレビュー"
+                aria-label="選択したアラーム音を5秒間プレビュー"
               >
                 ▶
               </button>
             </div>
 
             <div className="timer-input">
-              {/* TODO: Improve accessibility - add aria-labels to buttons and support keyboard navigation */}
+              {/* Improved accessibility - added aria-labels and keyboard navigation support */}
               <div className="time-input-group">
-                <button className="time-adjust-btn" onClick={() => incrementTime('hour')}>+</button>
-                <div className="time-display">{targetHour}</div>
-                <button className="time-adjust-btn" onClick={() => decrementTime('hour')}>−</button>
+                <button
+                  className="time-adjust-btn"
+                  onClick={() => incrementTime('hour')}
+                  aria-label="時を増加"
+                >
+                  +
+                </button>
+                <div
+                  className="time-display"
+                  role="textbox"
+                  aria-label="時間"
+                  aria-readonly="true"
+                >
+                  {targetHour}
+                </div>
+                <button
+                  className="time-adjust-btn"
+                  onClick={() => decrementTime('hour')}
+                  aria-label="時を減少"
+                >
+                  −
+                </button>
               </div>
-              <span className="time-separator">:</span>
+              <span className="time-separator" aria-hidden="true">:</span>
               <div className="time-input-group">
-                <button className="time-adjust-btn" onClick={() => incrementTime('minute')}>+</button>
-                <div className="time-display">{targetMinute}</div>
-                <button className="time-adjust-btn" onClick={() => decrementTime('minute')}>−</button>
+                <button
+                  className="time-adjust-btn"
+                  onClick={() => incrementTime('minute')}
+                  aria-label="分を増加"
+                >
+                  +
+                </button>
+                <div
+                  className="time-display"
+                  role="textbox"
+                  aria-label="分"
+                  aria-readonly="true"
+                >
+                  {targetMinute}
+                </div>
+                <button
+                  className="time-adjust-btn"
+                  onClick={() => decrementTime('minute')}
+                  aria-label="分を減少"
+                >
+                  −
+                </button>
               </div>
-              <span className="time-separator">:</span>
+              <span className="time-separator" aria-hidden="true">:</span>
               <div className="time-input-group">
-                <button className="time-adjust-btn" onClick={() => incrementTime('second')}>+</button>
-                <div className="time-display">{targetSecond}</div>
-                <button className="time-adjust-btn" onClick={() => decrementTime('second')}>−</button>
+                <button
+                  className="time-adjust-btn"
+                  onClick={() => incrementTime('second')}
+                  aria-label="秒を増加"
+                >
+                  +
+                </button>
+                <div
+                  className="time-display"
+                  role="textbox"
+                  aria-label="秒"
+                  aria-readonly="true"
+                >
+                  {targetSecond}
+                </div>
+                <button
+                  className="time-adjust-btn"
+                  onClick={() => decrementTime('second')}
+                  aria-label="秒を減少"
+                >
+                  −
+                </button>
               </div>
             </div>
             <button
               onClick={handleStart}
               disabled={isScheduledRunning}
               className="btn btn-start"
+              aria-label="指定時刻のタイマーを開始"
             >
               開始
             </button>
@@ -155,6 +215,7 @@ export default function Timer() {
               onClick={handleStop}
               disabled={!isScheduledRunning}
               className="btn btn-pause"
+              aria-label="タイマーを停止"
             >
               停止
             </button>
