@@ -57,6 +57,18 @@ body {
   background-color: var(--bg-color);
 }
 
+@media (max-width: 600px) {
+  .app-header {
+    display: none;
+  }
+}
+
+@media (max-height: 500px) {
+  .app-header {
+    display: none;
+  }
+}
+
 .app-header h1 {
   font-size: 1.5rem;
   font-weight: 600;

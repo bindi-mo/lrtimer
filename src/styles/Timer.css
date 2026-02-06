@@ -118,6 +118,18 @@ html[data-theme='light'] {
   z-index: 10;
 }
 
+@media (max-width: 600px) {
+  .timer-container h1 {
+    display: none !important;
+  }
+}
+
+@media (max-height: 500px) {
+  .timer-container h1 {
+    display: none !important;
+  }
+}
+
 .date-display {
   color: var(--primary-color);
   font-size: var(--font-size-xs);
@@ -327,6 +339,7 @@ html[data-theme='light'] {
   text-transform: uppercase;
   letter-spacing: 1px;
   box-shadow: var(--shadow-primary);
+  min-width: 100px;
 }
 
 .btn-start {
@@ -364,6 +377,46 @@ html[data-theme='light'] {
   align-items: center;
   gap: var(--spacing-lg);
   animation: fadeIn var(--transition-normal);
+}
+
+.timer-header {
+  position: relative;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  width: 100%;
+}
+
+.theme-toggle-mobile {
+  display: none;
+  position: fixed;
+  top: 1rem;
+  right: 1rem;
+  background: var(--background-overlay);
+  border: 1px solid var(--border-color);
+  border-radius: var(--border-radius-xs);
+  padding: var(--spacing-xs) var(--spacing-sm);
+  font-size: 1.2rem;
+  cursor: pointer;
+  transition: all var(--transition-normal);
+  z-index: 100;
+}
+
+.theme-toggle-mobile:hover {
+  background: rgba(100, 181, 246, 0.1);
+  border-color: var(--primary-color);
+}
+
+@media (max-width: 600px) {
+  .theme-toggle-mobile {
+    display: block;
+  }
+}
+
+@media (max-height: 500px) {
+  .theme-toggle-mobile {
+    display: block;
+  }
 }
 
 @media (min-width: 800px) {
@@ -581,4 +634,137 @@ html[data-theme='dark'] .alarm-select option {
 
 .modal-content .btn {
   min-width: 80px;
+}
+
+/* Display-only mode when timer is not running */
+.timer-display-mode {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--spacing-xl);
+  margin-bottom: var(--spacing-xl);
+}
+
+.time-display-large {
+  font-size: 3.5rem;
+  font-weight: bold;
+  color: var(--primary-color);
+  font-family: 'Courier New', monospace;
+  text-shadow: var(--shadow-text);
+  letter-spacing: 4px;
+}
+
+.timer-display-actions {
+  display: flex;
+  gap: var(--spacing-md);
+  justify-content: center;
+}
+
+.btn-edit {
+  background: linear-gradient(135deg, var(--primary-color) 0%, var(--primary-hover) 100%);
+  color: white;
+}
+
+.btn-edit:hover:not(:disabled) {
+  background: linear-gradient(135deg, var(--primary-hover) 0%, var(--primary-light) 100%);
+  box-shadow: var(--shadow-hover);
+  transform: translateY(-2px);
+}
+
+.btn-edit:active {
+  transform: translateY(0);
+}
+
+.timer-input-actions {
+  display: flex;
+  gap: var(--spacing-md);
+  justify-content: center;
+}
+
+.btn-cancel {
+  padding: var(--spacing-sm) var(--spacing-xl);
+  background: var(--background-overlay);
+  border: 1px solid var(--border-primary);
+  border-radius: var(--border-radius-xs);
+  color: var(--text-color);
+  font-size: var(--font-size-regular);
+  font-weight: bold;
+  cursor: pointer;
+  transition: all var(--transition-normal);
+  min-width: 100px;
+}
+
+.btn-cancel:hover {
+  background: rgba(100, 181, 246, 0.1);
+  border-color: var(--primary-color);
+}
+
+.btn-cancel:active {
+  transform: scale(0.95);
+}
+
+/* Edit mode modal styling */
+.edit-mode-overlay {
+  display: none;
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.5);
+  z-index: 998;
+}
+
+.timer-edit-modal {
+  display: block;
+}
+
+@media (max-width: 600px) {
+  .edit-mode-overlay {
+    display: block;
+  }
+
+  .timer-edit-modal {
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    z-index: 999;
+    background: var(--background-modal-content);
+    border-radius: var(--border-radius);
+    padding: var(--spacing-lg);
+    max-width: 90%;
+    max-height: 80vh;
+    overflow-y: auto;
+    box-shadow: var(--shadow-modal);
+    border: 1px solid var(--border-color);
+  }
+
+  .timer-input-container {
+    display: flex;
+    flex-direction: column;
+    gap: var(--spacing-md);
+  }
+}
+
+@media (max-height: 500px) {
+  .edit-mode-overlay {
+    display: block;
+  }
+
+  .timer-edit-modal {
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    z-index: 999;
+    background: var(--background-modal-content);
+    border-radius: var(--border-radius);
+    padding: var(--spacing-md);
+    max-width: 90%;
+    max-height: 80vh;
+    overflow-y: auto;
+    box-shadow: var(--shadow-modal);
+    border: 1px solid var(--border-color);
+  }
 }

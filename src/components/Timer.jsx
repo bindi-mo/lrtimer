@@ -1,4 +1,5 @@
-import { useCallback, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useTimerContext } from '../contexts/TimerContext';
 import { useScheduledTimer } from '../hooks/useScheduledTimer';
 import '../styles/Timer.css';
 import { playAlarmPreview } from '../utils/alarmSounds';
@@ -10,6 +11,7 @@ export default function Timer() {
   const [targetMinute, setTargetMinute] = useState('00');
   const [targetSecond, setTargetSecond] = useState('00');
   const [selectedAlarm, setSelectedAlarm] = useState('beep');
+  const [isEditMode, setIsEditMode] = useState(false);
 
   // カスタムフックを使用
   const {
@@ -22,6 +24,13 @@ export default function Timer() {
     handleStop,
     handleModalOk,
   } = useScheduledTimer(targetHour, targetMinute, targetSecond);
+
+  // Reset edit mode when timer stops
+  useEffect(() => {
+    if (!isScheduledRunning) {
+      setIsEditMode(false);
+    }
+  }, [isScheduledRunning]);
 
   // メモ化された計算値
   // Fixed: useMemo dependency array - scheduledTimeLeft is updated in real-time within useScheduledTimer
@@ -76,6 +85,13 @@ export default function Timer() {
     playAlarmPreview(selectedAlarm);
   }, [selectedAlarm]);
 
+  const { globalSettings, updateSettings } = useTimerContext();
+
+  const toggleTheme = () => {
+    const newTheme = globalSettings.theme === 'dark' ? 'light' : 'dark';
+    updateSettings({ theme: newTheme });
+  };
+
   return (
     <div className="timer-container">
       <div className="date-display">
@@ -84,129 +100,178 @@ export default function Timer() {
       <h1>🕐 指定時刻通知タイマー</h1>
 
       <div className="timer-mode">
-        <CircularProgress
-          timeLeft={timeLeft}
-          totalTime={15 * 60}
-          isCountdown={false}
-          isRunning={isScheduledRunning}
-          isAchieved={isAchieved}
-          isStarting={timeLeft === null}
-        />
+        <div className="timer-header">
+          <CircularProgress
+            timeLeft={timeLeft}
+            totalTime={15 * 60}
+            isCountdown={false}
+            isRunning={isScheduledRunning}
+            isAchieved={isAchieved}
+            isStarting={timeLeft === null}
+          />
+          <button
+            onClick={toggleTheme}
+            className="theme-toggle-mobile"
+            aria-label={`Switch to ${globalSettings.theme === 'dark' ? 'light' : 'dark'} theme`}
+          >
+            {globalSettings.theme === 'dark' ? '☀️' : '🌙'}
+          </button>
+        </div>
 
         {!isScheduledRunning && (
-          <div className="timer-input-container">
-            <div className="alarm-selector">
-              <label htmlFor="alarm-select">アラーム音:</label>
-              <select
-                id="alarm-select"
-                value={selectedAlarm}
-                onChange={(e) => setSelectedAlarm(e.target.value)}
-                disabled={isScheduledRunning}
-                className="alarm-select"
-                aria-label="アラーム音の種類を選択"
-              >
-                <option value="beep">ビープ音</option>
-                <option value="low">低いビープ音</option>
-                <option value="phone">電話音</option>
-                <option value="pulse">パルス音</option>
-                <option value="ascending">上昇音</option>
-              </select>
-              <button
-                onClick={handleAlarmPreview}
-                disabled={isScheduledRunning}
-                className="btn-play"
-                aria-label="選択したアラーム音を5秒間プレビュー"
-              >
-                ▶
-              </button>
-            </div>
+          <>
+            {!isEditMode ? (
+              // Display-only mode
+              <div className="timer-display-mode">
+                <div className="time-display-large">
+                  {targetHour}:{targetMinute}:{targetSecond}
+                </div>
+                <div className="timer-display-actions">
+                  <button
+                    onClick={() => setIsEditMode(true)}
+                    className="btn btn-edit"
+                    aria-label="時刻を編集"
+                  >
+                    編集
+                  </button>
+                  <button
+                    onClick={handleStart}
+                    className="btn btn-start"
+                    aria-label="指定時刻のタイマーを開始"
+                  >
+                    開始
+                  </button>
+                </div>
+              </div>
+            ) : (
+              // Edit mode - Modal on mobile, inline on desktop
+              <>
+                <div className="edit-mode-overlay" />
+                <div className="timer-edit-modal">
+                <div className="alarm-selector">
+                  <label htmlFor="alarm-select">アラーム音:</label>
+                  <select
+                    id="alarm-select"
+                    value={selectedAlarm}
+                    onChange={(e) => setSelectedAlarm(e.target.value)}
+                    disabled={isScheduledRunning}
+                    className="alarm-select"
+                    aria-label="アラーム音の種類を選択"
+                  >
+                    <option value="beep">ビープ音</option>
+                    <option value="low">低いビープ音</option>
+                    <option value="phone">電話音</option>
+                    <option value="pulse">パルス音</option>
+                    <option value="ascending">上昇音</option>
+                  </select>
+                  <button
+                    onClick={handleAlarmPreview}
+                    disabled={isScheduledRunning}
+                    className="btn-play"
+                    aria-label="選択したアラーム音を5秒間プレビュー"
+                  >
+                    ▶
+                  </button>
+                </div>
 
-            <div className="timer-input">
-              {/* Improved accessibility - added aria-labels and keyboard navigation support */}
-              <div className="time-input-group">
-                <button
-                  className="time-adjust-btn"
-                  onClick={() => incrementTime('hour')}
-                  aria-label="時を増加"
-                >
-                  +
-                </button>
-                <div
-                  className="time-display"
-                  role="textbox"
-                  aria-label="時間"
-                  aria-readonly="true"
-                >
-                  {targetHour}
+                <div className="timer-input">
+                  {/* Improved accessibility - added aria-labels and keyboard navigation support */}
+                  <div className="time-input-group">
+                    <button
+                      className="time-adjust-btn"
+                      onClick={() => incrementTime('hour')}
+                      aria-label="時を増加"
+                    >
+                      +
+                    </button>
+                    <div
+                      className="time-display"
+                      role="textbox"
+                      aria-label="時間"
+                      aria-readonly="true"
+                    >
+                      {targetHour}
+                    </div>
+                    <button
+                      className="time-adjust-btn"
+                      onClick={() => decrementTime('hour')}
+                      aria-label="時を減少"
+                    >
+                      −
+                    </button>
+                  </div>
+                  <span className="time-separator" aria-hidden="true">:</span>
+                  <div className="time-input-group">
+                    <button
+                      className="time-adjust-btn"
+                      onClick={() => incrementTime('minute')}
+                      aria-label="分を増加"
+                    >
+                      +
+                    </button>
+                    <div
+                      className="time-display"
+                      role="textbox"
+                      aria-label="分"
+                      aria-readonly="true"
+                    >
+                      {targetMinute}
+                    </div>
+                    <button
+                      className="time-adjust-btn"
+                      onClick={() => decrementTime('minute')}
+                      aria-label="分を減少"
+                    >
+                      −
+                    </button>
+                  </div>
+                  <span className="time-separator" aria-hidden="true">:</span>
+                  <div className="time-input-group">
+                    <button
+                      className="time-adjust-btn"
+                      onClick={() => incrementTime('second')}
+                      aria-label="秒を増加"
+                    >
+                      +
+                    </button>
+                    <div
+                      className="time-display"
+                      role="textbox"
+                      aria-label="秒"
+                      aria-readonly="true"
+                    >
+                      {targetSecond}
+                    </div>
+                    <button
+                      className="time-adjust-btn"
+                      onClick={() => decrementTime('second')}
+                      aria-label="秒を減少"
+                    >
+                      −
+                    </button>
+                  </div>
                 </div>
-                <button
-                  className="time-adjust-btn"
-                  onClick={() => decrementTime('hour')}
-                  aria-label="時を減少"
-                >
-                  −
-                </button>
-              </div>
-              <span className="time-separator" aria-hidden="true">:</span>
-              <div className="time-input-group">
-                <button
-                  className="time-adjust-btn"
-                  onClick={() => incrementTime('minute')}
-                  aria-label="分を増加"
-                >
-                  +
-                </button>
-                <div
-                  className="time-display"
-                  role="textbox"
-                  aria-label="分"
-                  aria-readonly="true"
-                >
-                  {targetMinute}
+                <div className="timer-input-actions">
+                  <button
+                    onClick={handleStart}
+                    disabled={isScheduledRunning}
+                    className="btn btn-start"
+                    aria-label="指定時刻のタイマーを開始"
+                  >
+                    開始
+                  </button>
+                  <button
+                    onClick={() => setIsEditMode(false)}
+                    className="btn btn-cancel"
+                    aria-label="編集をキャンセル"
+                  >
+                    キャンセル
+                  </button>
                 </div>
-                <button
-                  className="time-adjust-btn"
-                  onClick={() => decrementTime('minute')}
-                  aria-label="分を減少"
-                >
-                  −
-                </button>
               </div>
-              <span className="time-separator" aria-hidden="true">:</span>
-              <div className="time-input-group">
-                <button
-                  className="time-adjust-btn"
-                  onClick={() => incrementTime('second')}
-                  aria-label="秒を増加"
-                >
-                  +
-                </button>
-                <div
-                  className="time-display"
-                  role="textbox"
-                  aria-label="秒"
-                  aria-readonly="true"
-                >
-                  {targetSecond}
-                </div>
-                <button
-                  className="time-adjust-btn"
-                  onClick={() => decrementTime('second')}
-                  aria-label="秒を減少"
-                >
-                  −
-                </button>
-              </div>
-            </div>
-            <button
-              onClick={handleStart}
-              disabled={isScheduledRunning}
-              className="btn btn-start"
-              aria-label="指定時刻のタイマーを開始"
-            >
-              開始
-            </button>
-          </div>
+            </>
+            )}
+          </>
         )}
 
         <div className="timer-controls">
