@@ -223,9 +223,9 @@ export const useScheduledTimer = (targetHour, targetMinute, targetSecond) => {
           animationTimeoutRef.current = setTimeout(() => {
             setIsAchieved(false);
             notificationRef.current = {
-              prev15min: null,
-              prev5min: null,
-              prevFinal: null,
+              prev15min: NOTIFICATION_THRESHOLDS.PRE_15_TARGET,
+              prev5min: NOTIFICATION_THRESHOLDS.PRE_5_TARGET,
+              prevFinal: NOTIFICATION_THRESHOLDS.COMPLETION,
               prevSecondsLeft: null,
             };
 
