@@ -2,25 +2,19 @@ import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { playAlarmSound } from '../utils/alarmSounds';
 import { calculateTargetTimeInSeconds, calculateTimeLeft } from '../utils/timeUtils';
 
-// TODO: Refactor code - consolidate constants, unify comments to English, remove unused variables
-// 定数定義
+// Constants for time calculations
 const TWELVE_HOURS = 12 * 3600;
-const FIFTEEN_MINUTES = 15 * 60;
-const FIVE_MINUTES = 5 * 60;
 
-// 通知しきい値の定数
+// Notification threshold constants
 const NOTIFICATION_THRESHOLDS = {
-  FIFTEEN_MIN: 15 * 60,        // 15分前
-  FIVE_MIN: 5 * 60,            // 5分前
-  COUNTDOWN: 10,               // カウントダウン開始秒数
-  PRE_15_TRIGGER: 901,         // 15分前通知トリガー (901秒 → 900秒)
-  PRE_15_TARGET: 900,          // 15分前通知ターゲット
-  PRE_5_TRIGGER: 301,          // 5分前通知トリガー (301秒 → 300秒)
-  PRE_5_TARGET: 300,           // 5分前通知ターゲット
-  COMPLETION: 0,               // 完了時刻
-  ALARM_DURATION: 15,          // アラーム継続時間（秒）
-  AUTO_RESTART_DELAY: 5 * 60,  // 自動再開までの待機時間（秒）
-  ACHIEVEMENT_DISPLAY: 15,     // 完了表示時間（秒）
+  FIFTEEN_MIN: 15 * 60,        // 15 minutes in seconds
+  FIVE_MIN: 5 * 60,            // 5 minutes in seconds
+  PRE_15_TARGET: 900,          // Trigger 15-minute notification when crossing 900s
+  PRE_5_TARGET: 300,           // Trigger 5-minute notification when crossing 300s
+  COMPLETION: 0,               // Trigger completion notification at 0 seconds
+  ALARM_DURATION: 15,          // Alarm sound duration in seconds
+  AUTO_RESTART_DELAY: 5 * 60,  // Delay before auto-restart in seconds
+  ACHIEVEMENT_DISPLAY: 15,     // Duration to display achievement in seconds
 };
 
 export const useScheduledTimer = (targetHour, targetMinute, targetSecond) => {
@@ -50,11 +44,11 @@ export const useScheduledTimer = (targetHour, targetMinute, targetSecond) => {
   const autoRestartTimeoutRef = useRef(null);
   const autoRestartStartTimeoutRef = useRef(null);
 
-  const playNotification = (message = '完了', alarmType = 'beep', showBrowserNotification = true) => {
-    // ブラウザ通知が有効な場合のみ送信
+  const playNotification = (message = 'Complete', alarmType = 'beep', showBrowserNotification = true) => {
+    // Send browser notification only if enabled and permission is granted
     if (showBrowserNotification && 'Notification' in window && Notification.permission === 'granted') {
       try {
-        new Notification('タイマー', {
+        new Notification('Timer', {
           body: message,
           icon: '⏰',
         });
@@ -63,7 +57,7 @@ export const useScheduledTimer = (targetHour, targetMinute, targetSecond) => {
       }
     }
 
-    // AudioContextはalarmSounds.jsで管理されるため、ここでは直接使用しない
+    // AudioContext is managed in alarmSounds.js, just play the sound
     playAlarmSound(null, alarmType);
   };
 
@@ -77,7 +71,7 @@ export const useScheduledTimer = (targetHour, targetMinute, targetSecond) => {
   const startAlarmForDuration = useCallback((durationSeconds, alarmType) => {
     stopAlarm();
 
-    playNotification('15分前です', alarmType, true);
+    playNotification('15 minutes remaining', alarmType, true);
 
     alarmIntervalRef.current = setInterval(() => {
       playNotification('', alarmType, false);
@@ -97,7 +91,7 @@ export const useScheduledTimer = (targetHour, targetMinute, targetSecond) => {
       if (Notification.permission === 'granted') {
         notificationRef.current.permission = true;
       } else if (Notification.permission !== 'denied') {
-        // ユーザーまだ選択していない場合のみ要求
+        // Request permission only if user hasn't made a choice yet
         Notification.requestPermission()
           .then((permission) => {
             notificationRef.current.permission = permission === 'granted';
@@ -148,10 +142,10 @@ export const useScheduledTimer = (targetHour, targetMinute, targetSecond) => {
     };
   }, []);
 
-  // 開始前に残り時間をリアルタイム更新
+  // Update time remaining before timer starts
   useEffect(() => {
     if (!isScheduledRunning) {
-      // 初回計算を遅延実行（マウント直後）
+      // Defer initial calculation to next tick (after mount)
       const initialTimeout = setTimeout(() => {
         const now = new Date();
         const timeInSeconds = now.getHours() * 3600 + now.getMinutes() * 60 + now.getSeconds();
