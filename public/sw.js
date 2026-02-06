@@ -1,7 +1,7 @@
 // Service Worker for LR Timer PWA
 // バックグラウンド通知とキャッシング機能を提供
 
-const CACHE_NAME = 'lrtimer-v1';
+const CACHE_NAME = 'lrtimer-v4';
 
 // インストール時にキャッシュを作成
 self.addEventListener('install', (event) => {
