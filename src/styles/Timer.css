@@ -1,3 +1,7 @@
+/* Google Fonts imports */
+@import url('https://fonts.googleapis.com/css2?family=Michroma&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Outfit:wght@400;700&display=swap');
+
 /* CSS custom properties for dark theme (default) */
 :root {
   /* Colors */
@@ -118,11 +122,18 @@ html[data-theme='light'] {
   z-index: 10;
 }
 
-@media (max-width: 600px), (max-height: 500px) {
+@media (max-width: 600px) {
   .timer-container h1 {
     display: none !important;
   }
 }
+
+@media (max-height: 500px) {
+  .timer-container h1 {
+    display: none !important;
+  }
+}
+
 .date-display {
   color: var(--primary-color);
   font-size: var(--font-size-xs);
@@ -131,6 +142,7 @@ html[data-theme='light'] {
   position: relative;
   top: auto;
   left: auto;
+  font-family: 'Outfit', sans-serif;
 }
 
 @media (min-width: 800px) {
@@ -179,13 +191,13 @@ html[data-theme='light'] {
 .progress-background {
   fill: none;
   stroke: var(--border-color);
-  stroke-width: 12;
+  stroke-width: 15;
 }
 
 .progress-circle {
   fill: none;
   stroke: var(--primary-color);
-  stroke-width: 12;
+  stroke-width: 15;
   stroke-linecap: round;
   transition: stroke-dashoffset var(--transition-slow), stroke var(--transition-normal);
 }
@@ -215,10 +227,10 @@ html[data-theme='light'] {
   top: 50%;
   left: 50%;
   transform: translate(-50%, -50%);
-  font-size: var(--font-size-large);
+  font-size: 2.4rem;
   font-weight: bold;
   color: var(--primary-color);
-  font-family: 'Courier New', monospace;
+  font-family: 'Michroma', 'Courier New', monospace;
   text-shadow: var(--shadow-text);
 }
 
@@ -228,6 +240,7 @@ html[data-theme='light'] {
 
 .timer-input {
   display: flex;
+  justify-content: center;
   align-items: center;
   gap: var(--spacing-xs);
   background: var(--background-overlay);
@@ -264,12 +277,12 @@ html[data-theme='light'] {
 }
 
 .time-display {
-  font-size: 2rem;
+  font-size: 1.2rem;
   font-weight: bold;
   color: var(--primary-color);
   width: 60px;
   text-align: center;
-  font-family: 'Courier New', monospace;
+  font-family: 'Michroma', 'Courier New', monospace;
   min-height: 50px;
   display: flex;
   align-items: center;
@@ -466,7 +479,7 @@ html[data-theme='light'] {
   }
 
   .time-display {
-    font-size: 3rem;
+    font-size: 1.2rem;
     width: 50px;
     min-height: var(--spacing-xxl);
   }
@@ -634,17 +647,17 @@ html[data-theme='dark'] .alarm-select option {
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: var(--spacing-xl);
+  gap: var(--spacing-xs);
   margin-bottom: var(--spacing-xl);
 }
 
 .time-display-large {
-  font-size: 3.5rem;
+  font-size:1.8rem;
   font-weight: bold;
   color: var(--primary-color);
-  font-family: 'Courier New', monospace;
+  font-family: 'Michroma', 'Courier New', monospace;
   text-shadow: var(--shadow-text);
-  letter-spacing: 4px;
+  letter-spacing: 3px;
 }
 
 .timer-display-actions {
@@ -656,6 +669,7 @@ html[data-theme='dark'] .alarm-select option {
 .btn-edit {
   background: linear-gradient(135deg, var(--primary-color) 0%, var(--primary-hover) 100%);
   color: white;
+  margin-top: var(--spacing-sm);
 }
 
 .btn-edit:hover:not(:disabled) {
@@ -709,7 +723,23 @@ html[data-theme='dark'] .alarm-select option {
 }
 
 .timer-edit-modal {
-  display: block;
+  display: none;
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  z-index: 999;
+  background: var(--background-modal-content);
+  border-radius: var(--border-radius);
+  padding: var(--spacing-lg);
+  width: 350px;
+  height: 350px;
+  overflow-y: auto;
+  box-shadow: var(--shadow-modal);
+  border: 1px solid var(--border-color);
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-lg);
 }
 
 @media (max-width: 600px) {
@@ -717,23 +747,7 @@ html[data-theme='dark'] .alarm-select option {
     display: block;
   }
 
-  .timer-edit-modal {
-    position: fixed;
-    top: 50%;
-    left: 50%;
-    transform: translate(-50%, -50%);
-    z-index: 999;
-    background: var(--background-modal-content);
-    border-radius: var(--border-radius);
-    padding: var(--spacing-lg);
-    max-width: 90%;
-    max-height: 80vh;
-    overflow-y: auto;
-    box-shadow: var(--shadow-modal);
-    border: 1px solid var(--border-color);
-  }
-
-  .timer-edit-modal .timer-input {
+  .timer-input-container {
     display: flex;
     flex-direction: column;
     gap: var(--spacing-md);
@@ -743,21 +757,5 @@ html[data-theme='dark'] .alarm-select option {
 @media (max-height: 500px) {
   .edit-mode-overlay {
     display: block;
-  }
-
-  .timer-edit-modal {
-    position: fixed;
-    top: 50%;
-    left: 50%;
-    transform: translate(-50%, -50%);
-    z-index: 999;
-    background: var(--background-modal-content);
-    border-radius: var(--border-radius);
-    padding: var(--spacing-md);
-    max-width: 90%;
-    max-height: 80vh;
-    overflow-y: auto;
-    box-shadow: var(--shadow-modal);
-    border: 1px solid var(--border-color);
   }
 }
