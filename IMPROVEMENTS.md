@@ -5,7 +5,7 @@ This document lists the improvements identified during code review, prioritized 
 ## High Priority (Bug Fixes)
 - [x] Fix negative time display in `Timer.jsx`: When target time is in the past, show time until next cycle instead of negative values.
 - [x] Fix notification timing logic in `useScheduledTimer.js`: Relax strict second-based comparisons to prevent missed notifications.
-- [ ] Fix memory leaks in `useScheduledTimer.js`: Add cleanup for setTimeout/setInterval on component unmount.
+- [x] Fix memory leaks in `useScheduledTimer.js`: Add cleanup for setTimeout/setInterval on component unmount.
 
 ## Medium Priority (Stability Improvements)
 - [ ] Add error handling in `alarmSounds.js` and `useScheduledTimer.js`: Handle AudioContext creation failures and Notification permission denials.
