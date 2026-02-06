@@ -2,7 +2,6 @@ import { useCallback, useMemo, useState } from 'react';
 import { useScheduledTimer } from '../hooks/useScheduledTimer';
 import '../styles/Timer.css';
 import { playAlarmPreview } from '../utils/alarmSounds';
-import { calculateTargetTimeInSeconds, getCurrentTimeInSeconds } from '../utils/timeUtils';
 import CircularProgress from './CircularProgress';
 
 export default function Timer() {
@@ -25,18 +24,13 @@ export default function Timer() {
   } = useScheduledTimer(targetHour, targetMinute, targetSecond);
 
   // メモ化された計算値
-  const targetTimeInSeconds = useMemo(() =>
-    calculateTargetTimeInSeconds(targetHour, targetMinute, targetSecond),
-    [targetHour, targetMinute, targetSecond]
-  );
-
-  const currentTimeInSeconds = useMemo(() => getCurrentTimeInSeconds(), []);
-  // TODO: Fix useMemo dependency array - ensure currentTimeInSeconds updates in real-time
+  // Fixed: useMemo dependency array - scheduledTimeLeft is updated in real-time within useScheduledTimer
+  // currentTimeInSeconds is not needed here, as useScheduledTimer manages real-time updates
   const timeLeft = useMemo(() => {
     if (!isScheduledRunning) {
-      return scheduledTimeLeft; // 開始前はscheduledTimeLeftを使う（リアルタイム更新されている）
+      return scheduledTimeLeft; // 開始前はscheduledTimeLeftを使う（useScheduledTimer内でリアルタイム更新）
     }
-    return scheduledTimeLeft;
+    return scheduledTimeLeft; // 実行中もscheduledTimeLeftを使う（1秒ごと更新）
   }, [isScheduledRunning, scheduledTimeLeft]);
 
   // コールバック関数をメモ化

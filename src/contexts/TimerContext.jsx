@@ -4,6 +4,7 @@ import { createContext, useContext, useState } from 'react';
 const TimerContext = createContext();
 
 // Contextの値を使用するためのカスタムフック
+// eslint-disable-next-line react-refresh/only-export-components
 export const useTimerContext = () => {
   const context = useContext(TimerContext);
   if (!context) {

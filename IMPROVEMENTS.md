@@ -9,7 +9,7 @@ This document lists the improvements identified during code review, prioritized 
 
 ## Medium Priority (Stability Improvements)
 - [x] Add error handling in `alarmSounds.js` and `useScheduledTimer.js`: Handle AudioContext creation failures and Notification permission denials.
-- [ ] Fix useMemo dependency array in `Timer.jsx`: Ensure `currentTimeInSeconds` updates in real-time.
+- [x] Fix useMemo dependency array in `Timer.jsx`: Ensure `currentTimeInSeconds` updates in real-time.
 
 ## Low Priority (Quality Enhancements)
 - [ ] Improve accessibility in `Timer.jsx`: Add aria-labels to buttons and support keyboard navigation.
