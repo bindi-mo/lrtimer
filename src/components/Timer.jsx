@@ -6,12 +6,30 @@ import { playAlarmPreview } from '../utils/alarmSounds';
 import CircularProgress from './CircularProgress';
 import { MinusIcon, PlusIcon } from './TimeAdjustIcon';
 
+// Load target time from localStorage
+const loadTargetTime = () => {
+  try {
+    const stored = localStorage.getItem('lrtimer_target_time');
+    if (stored) {
+      return JSON.parse(stored);
+    }
+  } catch (error) {
+    console.error('Failed to load target time from localStorage:', error);
+  }
+  return { hour: '19', minute: '00', second: '00' };
+};
+
 export default function Timer() {
+  const { globalSettings, updateSettings } = useTimerContext();
+
+  // Load initial target time from localStorage
+  const initialTargetTime = loadTargetTime();
+
   // Scheduled mode states
-  const [targetHour, setTargetHour] = useState('19');
-  const [targetMinute, setTargetMinute] = useState('00');
-  const [targetSecond, setTargetSecond] = useState('00');
-  const [selectedAlarm, setSelectedAlarm] = useState('beep');
+  const [targetHour, setTargetHour] = useState(initialTargetTime.hour);
+  const [targetMinute, setTargetMinute] = useState(initialTargetTime.minute);
+  const [targetSecond, setTargetSecond] = useState(initialTargetTime.second);
+  const [selectedAlarm, setSelectedAlarm] = useState(globalSettings.defaultAlarmType);
   // 初回起動時は時刻設定を表示する
   const [isEditMode, setIsEditMode] = useState(true);
   const currentPreviewRef = useRef(null);
@@ -26,6 +44,23 @@ export default function Timer() {
     handleStop,
     handleModalOk,
   } = useScheduledTimer(targetHour, targetMinute, targetSecond);
+
+  // Save target time to localStorage whenever it changes
+  const saveTargetTime = useCallback(() => {
+    try {
+      localStorage.setItem('lrtimer_target_time', JSON.stringify({
+        hour: targetHour,
+        minute: targetMinute,
+        second: targetSecond
+      }));
+    } catch (error) {
+      console.error('Failed to save target time to localStorage:', error);
+    }
+  }, [targetHour, targetMinute, targetSecond]);
+
+  useEffect(() => {
+    saveTargetTime();
+  }, [saveTargetTime]);
 
   // モーダルが閉じられたときにタイマーを開始、開かれたときは停止
   useEffect(() => {
@@ -84,8 +119,6 @@ export default function Timer() {
       setTargetSecond(String(newVal).padStart(2, '0'));
     }
   }, [targetHour, targetMinute, targetSecond]);
-
-  const { globalSettings, updateSettings } = useTimerContext();
 
   const toggleTheme = () => {
     const newTheme = globalSettings.theme === 'dark' ? 'light' : 'dark';
