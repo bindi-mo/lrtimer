@@ -68,4 +68,54 @@ describe('useScheduledTimer', () => {
     // これは useScheduledTimer の定数で定義されている
     expect(result.current.isAchieved).toBe(false);
   });
+
+  it('does not set isAchieved immediately when started after the target time', () => {
+    // 現在時刻を 20:00:00 に設定し、ターゲットを 19:00:00 にする（既に過ぎている状態）
+    const base = new Date(2026, 1, 9, 20, 0, 0);
+    vi.setSystemTime(base);
+
+    const currentSeconds = base.getHours() * 3600 + base.getMinutes() * 60 + base.getSeconds();
+    const targetSeconds = currentSeconds - (1 * 3600); // 1時間前
+
+    const targetHour = String(Math.floor((targetSeconds / 3600) % 24));
+    const targetMinute = String(Math.floor((targetSeconds % 3600) / 60));
+    const targetSecond = String(targetSeconds % 60);
+
+    const { result } = renderHook(() => useScheduledTimer(targetHour, targetMinute, targetSecond));
+
+    act(() => {
+      result.current.handleStart();
+    });
+
+    // 開始直後は isAchieved にならない（既に過ぎているだけではトリガーしない）
+    expect(result.current.isAchieved).toBe(false);
+
+    act(() => vi.advanceTimersByTime(5000));
+
+    expect(result.current.isAchieved).toBe(false);
+  });
+
+  it('sets isAchieved when crossing the target time (prev > 0 -> diff <= 0)', () => {
+    // 現在時刻をターゲットの1秒前にして、1秒進めると達成されること
+    const base = new Date(2026, 1, 9, 10, 0, 0);
+    vi.setSystemTime(base);
+
+    const currentSeconds = base.getHours() * 3600 + base.getMinutes() * 60 + base.getSeconds();
+    const targetSeconds = currentSeconds + 1; // 1秒先がターゲット
+
+    const targetHour = String(Math.floor((targetSeconds / 3600) % 24));
+    const targetMinute = String(Math.floor((targetSeconds % 3600) / 60));
+    const targetSecond = String(targetSeconds % 60);
+
+    const { result } = renderHook(() => useScheduledTimer(targetHour, targetMinute, targetSecond));
+
+    act(() => {
+      result.current.handleStart();
+    });
+
+    // 1秒経過させて横切りさせる
+    act(() => vi.advanceTimersByTime(1500));
+
+    expect(result.current.isAchieved).toBe(true);
+  });
 });

@@ -108,10 +108,16 @@ export const useScheduledTimer = (targetHour, targetMinute, targetSecond) => {
       notificationRef.current.permission = false;
     }
 
+    // prevDiff は開始時点の差分で初期化（直前に過ぎているだけの場合には即時トリガーしないため）
+    const now = new Date();
+    const timeInSeconds = now.getHours() * 3600 + now.getMinutes() * 60 + now.getSeconds();
+    const targetInSeconds = calculateTargetTimeInSeconds(targetHour, targetMinute, targetSecond);
+
     notificationRef.current = {
       prev15min: null,
       prev5min: null,
       prevFinal: null,
+      prevDiff: targetInSeconds - timeInSeconds,
       permission: notificationRef.current.permission,
       isFirstUpdate: false,
     };
@@ -203,9 +209,11 @@ export const useScheduledTimer = (targetHour, targetMinute, targetSecond) => {
           startAlarmForDuration(NOTIFICATION_THRESHOLDS.ALARM_DURATION, 'phone');
         }
 
-        // 目標時刻に到達したらisAchievedをtrueにする
+        // 目標時刻に到達したらisAchievedをtrueにする（横切り検出でのみトリガー）
         const diff = targetInSeconds - timeInSeconds;
-        if (diff <= 0 && notificationRef.current.prevFinal !== NOTIFICATION_THRESHOLDS.COMPLETION) {
+        const prevDiff = notificationRef.current.prevDiff ?? Number.POSITIVE_INFINITY;
+        // トリガーは「前回は正、今回が0以下」のときのみ（＝時刻を横切った瞬間）に限定
+        if (prevDiff > 0 && diff <= 0 && notificationRef.current.prevFinal !== NOTIFICATION_THRESHOLDS.COMPLETION) {
           notificationRef.current.prevFinal = NOTIFICATION_THRESHOLDS.COMPLETION;
           setIsAchieved(true);
 
@@ -219,6 +227,7 @@ export const useScheduledTimer = (targetHour, targetMinute, targetSecond) => {
               prev5min: NOTIFICATION_THRESHOLDS.PRE_5_TARGET,
               prevFinal: NOTIFICATION_THRESHOLDS.COMPLETION,
               prevSecondsLeft: null,
+              prevDiff: null,
             };
 
           // Fixed: Add cleanup for setTimeout/setInterval on component unmount
@@ -237,6 +246,9 @@ export const useScheduledTimer = (targetHour, targetMinute, targetSecond) => {
             }, NOTIFICATION_THRESHOLDS.AUTO_RESTART_DELAY * 1000);
           }, NOTIFICATION_THRESHOLDS.ACHIEVEMENT_DISPLAY * 1000);
         }
+
+        // diff を保存して次回判定に使う
+        notificationRef.current.prevDiff = diff;
       }, 1000);
     }
 
