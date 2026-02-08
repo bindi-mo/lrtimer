@@ -73,7 +73,7 @@ const { globalSettings, updateSettings } = useTimerContext();
 - No external APIs or server communication required
 
 ## Code Style and Comments
-- **Comments**: All code comments must be written in **English**
+- **Comments**: Comments should be in English to maintain consistency across the codebase.
 - Maintain consistency across the entire codebase
 - Use clear, descriptive comments that explain the "why" not just the "what"
 - Example: `// Delay execution to ensure state updates are processed` (good) vs `// delay` (bad)
