@@ -35,7 +35,7 @@ export default function Timer() {
   const [targetMinute, setTargetMinute] = useState(initMinute);
   const [targetSecond, setTargetSecond] = useState(initSecond);
   const [selectedAlarm, setSelectedAlarm] = useState(globalSettings.defaultAlarmType);
-  // 初回起動時は、localStorage に保存された時刻がある場合は編集モードを表示しない
+  // On first run, do not show edit mode if a target time exists in localStorage
   const [isEditMode, setIsEditMode] = useState(!fromStorage);
   const currentPreviewRef = useRef(null);
 
@@ -59,7 +59,7 @@ export default function Timer() {
 
 
 
-  // スケジュールのリスト（配列に入っている順）
+  // List of schedules (keeps the array order)
   const schedules = useMemo(() => {
     const t1Sec = calculateTargetTimeInSeconds(targetHour, targetMinute, targetSecond);
     const t2Hour = (parseInt(targetHour, 10) + 12) % 24;
@@ -67,8 +67,8 @@ export default function Timer() {
     const t2Str = `${t2HourStr}:${targetMinute}:${targetSecond}`;
     const t2Sec = calculateTargetTimeInSeconds(t2HourStr, targetMinute, targetSecond);
 
-    // 秒（時刻の数字）が小さい順に配列へ格納して返す
-    // 小さい方（時刻数字が若い方）を先にして配列に格納
+    // Store and return the array ordered by seconds (time value) ascending
+    // Place the earlier time first in the array
     if (t1Sec <= t2Sec) {
       return [
         { first: `${targetHour}:${targetMinute}:${targetSecond}`, seconds: t1Sec },
@@ -82,7 +82,7 @@ export default function Timer() {
     ];
   }, [targetHour, targetMinute, targetSecond]);
 
-  // enabled 状態を localStorage に保存するマップ（キーは秒数）
+  // Map for storing enabled state in localStorage (keys are seconds)
   const loadEnabledMap = () => {
     try {
       const raw = localStorage.getItem('lrtimer_enabled_map');
@@ -97,7 +97,7 @@ export default function Timer() {
 
 
 
-  // enabledMap を localStorage に保存
+  // Save enabledMap to localStorage
   useEffect(() => {
     try {
       localStorage.setItem('lrtimer_enabled_map', JSON.stringify(enabledMap || {}));
@@ -105,6 +105,24 @@ export default function Timer() {
       console.error('Failed to save enabled map:', e);
     }
   }, [enabledMap]);
+
+  // When a new time is set, ensure schedules (by seconds key) exist in enabledMap.
+  // If a schedule key is missing, add it with default true so the countdown can start (otherwise all-disabled state prevents starting).
+  useEffect(() => {
+    setEnabledMap((prev) => {
+      const cur = prev || {};
+      let changed = false;
+      const next = { ...cur };
+      schedules.forEach((s) => {
+        const k = String(s.seconds);
+        if (!(k in next)) {
+          next[k] = true;
+          changed = true;
+        }
+      });
+      return changed ? next : cur;
+    });
+  }, [schedules]);
 
   const toggleEnabled = (seconds) => {
     const k = String(seconds);
@@ -120,8 +138,8 @@ export default function Timer() {
     });
   };
 
-  // 有効なスケジュールから、現在時刻に対して最も近い（24時間単位での次回）ものをアクティブにする
-  // すべて無効の場合は null を返す
+  // From enabled schedules, select the one closest to the current time (next occurrence within 24 hours)
+  // Returns null if all are disabled
   const activeSchedule = useMemo(() => {
     const now = new Date();
     const nowSec = now.getHours() * 3600 + now.getMinutes() * 60 + now.getSeconds();
@@ -154,7 +172,7 @@ export default function Timer() {
     return [parts[0], parts[1], parts[2]];
   }, [activeSchedule]);
 
-  // カスタムフックを使用（アクティブなスケジュールを渡す）
+  // Use custom hook (pass active schedule)
   const {
     isScheduledRunning,
     isAchieved,
@@ -164,19 +182,19 @@ export default function Timer() {
     handleModalOk,
   } = useScheduledTimer(activeHour, activeMinute, activeSecond);
 
-  // モーダルが閉じられたときにタイマーを開始、開かれたときは停止
+  // Start timer when modal is closed; stop when opened
   useEffect(() => {
     if (isEditMode) {
-      // 時刻設定モーダルが開かれたのでタイマーを停止
+      // Stop timer when edit modal opens
       if (isScheduledRunning) {
         handleStop();
       }
     } else {
-      // 時刻設定モーダルが閉じられたのでタイマーを開始（ただし有効なスケジュールがある場合のみ）
+      // Start timer when edit modal closes (only if an active schedule exists)
       if (!isScheduledRunning && activeSchedule) {
         handleStart();
       }
-      // プレビュー音を停止
+      // Stop preview sound
       if (currentPreviewRef.current) {
         currentPreviewRef.current.stop();
         currentPreviewRef.current = null;
@@ -184,7 +202,7 @@ export default function Timer() {
     }
   }, [isEditMode, isScheduledRunning, handleStart, handleStop, activeSchedule]);
 
-  // activeSchedule が null（すべて無効）になったら実行中であれば停止する
+  // If activeSchedule becomes null (all disabled), stop the timer if running
   useEffect(() => {
     if (!activeSchedule && isScheduledRunning) {
       handleStop();
@@ -282,7 +300,7 @@ export default function Timer() {
               // Display-only mode
               <div className="timer-display-mode">
                   {schedules.map((s) => {
-                  // undefined（キー未設定）はデフォルトで true にする
+                  // Treat undefined (key not set) as true by default
                   const enabled = enabledMap?.[String(s.seconds)] ?? true;
                   return (
                     <button
@@ -323,11 +341,11 @@ export default function Timer() {
                       value={selectedAlarm}
                       onChange={(e) => {
                         setSelectedAlarm(e.target.value);
-                        // 既存のプレビューを停止
+                        // Stop existing preview
                         if (currentPreviewRef.current) {
                           currentPreviewRef.current.stop();
                         }
-                        // 新しいプレビューを開始
+                        // Start new preview
                         const preview = playAlarmPreview(e.target.value);
                         currentPreviewRef.current = preview;
                       }}
@@ -479,11 +497,11 @@ export default function Timer() {
                       value={selectedAlarm}
                       onChange={(e) => {
                         setSelectedAlarm(e.target.value);
-                        // 既存のプレビューを停止
+                        // Stop existing preview
                         if (currentPreviewRef.current) {
                           currentPreviewRef.current.stop();
                         }
-                        // 新しいプレビューを開始
+                        // Start new preview
                         const preview = playAlarmPreview(e.target.value);
                         currentPreviewRef.current = preview;
                       }}

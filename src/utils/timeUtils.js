@@ -27,13 +27,14 @@ export const getCurrentTimeInSeconds = () => {
 // 12時間周期での残り時間を計算
 export const calculateTimeLeft = (targetSeconds, currentSeconds) => {
   const TWELVE_HOURS = 12 * 3600;
-  let secondsLeft = targetSeconds - currentSeconds;
 
-  if (secondsLeft <= 0) {
-    secondsLeft += TWELVE_HOURS;
-  } else if (secondsLeft > TWELVE_HOURS) {
-    secondsLeft -= TWELVE_HOURS;
-  }
+  // Normalize difference into (0, TWELVE_HOURS] so that an exact -12h difference
+  // (e.g. target is 12 hours before current) results in TWELVE_HOURS instead
+  // of 0 which would incorrectly indicate immediate completion.
+  let secondsLeft = ((targetSeconds - currentSeconds) % TWELVE_HOURS + TWELVE_HOURS) % TWELVE_HOURS;
+
+  // If modulo resulted in 0, the next occurrence is exactly TWELVE_HOURS away.
+  if (secondsLeft === 0) secondsLeft = TWELVE_HOURS;
 
   return secondsLeft;
 };

@@ -1,6 +1,8 @@
-import { render, screen } from '@testing-library/react';
+import { fireEvent, render, screen } from '@testing-library/react';
+import { act } from 'react-dom/test-utils';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { TimerProvider } from '../contexts/TimerContext';
+import { calculateTargetTimeInSeconds } from '../utils/timeUtils';
 import Timer from './Timer';
 
 describe('Timer component - edit mode based on localStorage', () => {
@@ -45,5 +47,41 @@ describe('Timer component - edit mode based on localStorage', () => {
 
     // The close button for the modal should be visible
     expect(screen.getByRole('button', { name: /閉じる/ })).toBeInTheDocument();
+  });
+
+  it('enables new schedule entries when changing target time so countdown can start', async () => {
+    localStorage.setItem('lrtimer_target_time', JSON.stringify({ hour: '08', minute: '00', second: '00' }));
+
+    // disable both existing schedules
+    const s1 = calculateTargetTimeInSeconds('08', '00', '00');
+    const s2hour = String(((8 + 12) % 24)).padStart(2, '0');
+    const s2 = calculateTargetTimeInSeconds(s2hour, '00', '00');
+    localStorage.setItem('lrtimer_enabled_map', JSON.stringify({ [String(s1)]: false, [String(s2)]: false }));
+
+    render(
+      <TimerProvider>
+        <Timer />
+      </TimerProvider>
+    );
+
+    // Open edit mode
+    const editBtn = screen.getByRole('button', { name: /時刻を?設定/ });
+    act(() => { fireEvent.click(editBtn); });
+
+    // Wait for the edit controls to appear and increment hour
+    const incButtons = await screen.findAllByLabelText('時を増加');
+    const incHour = incButtons[0];
+    act(() => { fireEvent.click(incHour); });
+
+    // Close modal
+    const closeBtn = await screen.findByRole('button', { name: /閉じる/ });
+    act(() => { fireEvent.click(closeBtn); });
+
+    // Read enabled map from localStorage
+    const enabled = JSON.parse(localStorage.getItem('lrtimer_enabled_map'));
+    const newS1 = calculateTargetTimeInSeconds('09', '00', '00');
+    const newS2 = calculateTargetTimeInSeconds(String(((9 + 12) % 24)).padStart(2, '0'), '00', '00');
+    expect(enabled[String(newS1)]).toBe(true);
+    expect(enabled[String(newS2)]).toBe(true);
   });
 });

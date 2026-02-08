@@ -73,6 +73,13 @@ describe('timeUtils', () => {
       expect(result).toBe(2 * 3600);
     });
 
+    it('should treat exactly 12 hours difference as 12 hours (not 0)', () => {
+      const target = 1 * 3600; // 01:00:00
+      const current = 13 * 3600; // 13:00:00
+      const result = calculateTimeLeft(target, current);
+      expect(result).toBe(12 * 3600);
+    });
+
     it('should handle zero difference', () => {
       const target = 15 * 3600;
       const current = 15 * 3600;
