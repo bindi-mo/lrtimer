@@ -68,3 +68,4 @@ describe('useScheduledTimer', () => {
     // これは useScheduledTimer の定数で定義されている
     expect(result.current.isAchieved).toBe(false);
   });
+});
