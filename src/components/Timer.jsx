@@ -13,12 +13,14 @@ const loadTargetTime = () => {
   try {
     const stored = localStorage.getItem('lrtimer_target_time');
     if (stored) {
-      return JSON.parse(stored);
+      const parsed = JSON.parse(stored);
+      return { ...parsed, fromStorage: true };
     }
   } catch (error) {
     console.error('Failed to load target time from localStorage:', error);
   }
-  return { hour: '19', minute: '00', second: '00' };
+  // no stored value or failed parse
+  return { hour: '19', minute: '00', second: '00', fromStorage: false };
 };
 
 export default function Timer() {
@@ -26,14 +28,15 @@ export default function Timer() {
 
   // Load initial target time from localStorage
   const initialTargetTime = loadTargetTime();
+  const { hour: initHour, minute: initMinute, second: initSecond, fromStorage } = initialTargetTime;
 
   // Scheduled mode states
-  const [targetHour, setTargetHour] = useState(initialTargetTime.hour);
-  const [targetMinute, setTargetMinute] = useState(initialTargetTime.minute);
-  const [targetSecond, setTargetSecond] = useState(initialTargetTime.second);
+  const [targetHour, setTargetHour] = useState(initHour);
+  const [targetMinute, setTargetMinute] = useState(initMinute);
+  const [targetSecond, setTargetSecond] = useState(initSecond);
   const [selectedAlarm, setSelectedAlarm] = useState(globalSettings.defaultAlarmType);
-  // 初回起動時は時刻設定を表示する
-  const [isEditMode, setIsEditMode] = useState(true);
+  // 初回起動時は、localStorage に保存された時刻がある場合は編集モードを表示しない
+  const [isEditMode, setIsEditMode] = useState(!fromStorage);
   const currentPreviewRef = useRef(null);
 
 
