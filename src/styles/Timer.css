@@ -206,6 +206,25 @@ html[data-theme='light'] {
   stroke: var(--warning-color);
 }
 
+.circular-progress.critical .progress-circle {
+  stroke: #ff3333;
+  animation: criticalFill 1s linear infinite;
+}
+
+.circular-progress.achieved .progress-circle {
+  stroke: #ff3333;
+  animation: achievedFlash var(--animation-duration) var(--animation-timing) infinite;
+}
+
+@keyframes criticalFill {
+  0% {
+    stroke-dashoffset: 565.48; /* circumference for radius 90 */
+  }
+  100% {
+    stroke-dashoffset: 0;
+  }
+}
+
 .circular-progress.achieved {
   animation: achievedFlash var(--animation-duration) var(--animation-timing) infinite;
 }

@@ -14,7 +14,7 @@ const NOTIFICATION_THRESHOLDS = {
   COMPLETION: 0,               // Trigger completion notification at 0 seconds
   ALARM_DURATION: 15,          // Alarm sound duration in seconds
   AUTO_RESTART_DELAY: 5 * 60,  // Delay before auto-restart in seconds
-  ACHIEVEMENT_DISPLAY: 15,     // Duration to display achievement in seconds
+  ACHIEVEMENT_DISPLAY: 10,     // Duration to display achievement in seconds
 };
 
 export const useScheduledTimer = (targetHour, targetMinute, targetSecond) => {
@@ -172,7 +172,7 @@ export const useScheduledTimer = (targetHour, targetMinute, targetSecond) => {
   useEffect(() => {
     let interval;
 
-    if (isScheduledRunning && !isAchieved) {
+    if (isScheduledRunning) {
       interval = setInterval(() => {
         const now = new Date();
         const timeInSeconds = now.getHours() * 3600 + now.getMinutes() * 60 + now.getSeconds();
@@ -180,36 +180,12 @@ export const useScheduledTimer = (targetHour, targetMinute, targetSecond) => {
 
         const secondsLeft = calculateTimeLeft(targetInSeconds, timeInSeconds);
 
-        if (!notificationRef.current.isFirstUpdate) {
-          setScheduledTimeLeft(secondsLeft);
-        } else {
-          notificationRef.current.isFirstUpdate = false;
-        }
+        // 秒数を更新（isAchievedでも更新する）
+        setScheduledTimeLeft(secondsLeft);
 
-        // Fixed: Relax strict second-based comparisons to prevent missed notifications
-        // 前のフレームが閾値以上で、現在のフレームが閾値以下の場合に通知をトリガー
-        // 15分前の通知（901秒 → 900秒以下に到達したら発動）
-        if ((notificationRef.current.prevSecondsLeft === null || notificationRef.current.prevSecondsLeft > NOTIFICATION_THRESHOLDS.PRE_15_TARGET) &&
-            secondsLeft <= NOTIFICATION_THRESHOLDS.PRE_15_TARGET &&
-            notificationRef.current.prev15min !== NOTIFICATION_THRESHOLDS.PRE_15_TARGET) {
-          notificationRef.current.prev15min = NOTIFICATION_THRESHOLDS.PRE_15_TARGET;
-          setModalMessage('15分前です');
-          setShowModal(true);
-          startAlarmForDuration(NOTIFICATION_THRESHOLDS.ALARM_DURATION, 'beep'); // 15秒間アラームを鳴らす
-        }
-
-        // 5分前の通知（301秒 → 300秒以下に到達したら発動）
-        if ((notificationRef.current.prevSecondsLeft === null || notificationRef.current.prevSecondsLeft > NOTIFICATION_THRESHOLDS.PRE_5_TARGET) &&
-            secondsLeft <= NOTIFICATION_THRESHOLDS.PRE_5_TARGET &&
-            notificationRef.current.prev5min !== NOTIFICATION_THRESHOLDS.PRE_5_TARGET) {
-          notificationRef.current.prev5min = NOTIFICATION_THRESHOLDS.PRE_5_TARGET;
-          playNotification('5分前', 'beep');
-        }
-
-        notificationRef.current.prevSecondsLeft = secondsLeft;
-
-        // 指定時刻（0秒以下に到達したら発動）
-        if (secondsLeft <= NOTIFICATION_THRESHOLDS.COMPLETION && notificationRef.current.prevFinal !== NOTIFICATION_THRESHOLDS.COMPLETION) {
+        // 目標時刻に到達したらisAchievedをtrueにする
+        const diff = targetInSeconds - timeInSeconds;
+        if (diff <= 0 && notificationRef.current.prevFinal !== NOTIFICATION_THRESHOLDS.COMPLETION) {
           notificationRef.current.prevFinal = NOTIFICATION_THRESHOLDS.COMPLETION;
           setIsAchieved(true);
 

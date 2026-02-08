@@ -4,11 +4,11 @@ export const formatTime = (seconds) => {
   const minutes = Math.floor((seconds % 3600) / 60);
   const secs = seconds % 60;
 
-  // 1時間以上は分と時のみ表示（秒は表示しない）
-  if (hours > 0) {
+  // 15分以上は時と分を表示（秒は表示しない）
+  if (hours > 0 || minutes >= 15) {
     return `${String(hours).padStart(2, '0')}:${String(minutes).padStart(2, '0')}`;
   }
-  // 1時間未満は分と秒を表示
+  // 15分未満は分と秒を表示
   return `${String(minutes).padStart(2, '0')}:${String(secs).padStart(2, '0')}`;
 };
 

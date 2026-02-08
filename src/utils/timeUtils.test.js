@@ -23,6 +23,11 @@ describe('timeUtils', () => {
       expect(result).toBe('02:05');
     });
 
+    it('should handle time exactly 15 minutes showing HH:MM', () => {
+      const result = formatTime(900);
+      expect(result).toBe('00:15');
+    });
+
     it('should handle time exactly one hour', () => {
       const result = formatTime(3600);
       expect(result).toBe('01:00');

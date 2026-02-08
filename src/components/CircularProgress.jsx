@@ -29,31 +29,42 @@ const CircularProgress = ({
     isCountdownDisplay = true;
   }
 
+  // isAchieved（0秒で点滅中）の場合は強制的に "0" を表示
+  if (isAchieved) {
+    displayElement = <span>0</span>;
+    isCountdownDisplay = true;
+  }
+
   if (isCountdown) {
     // カウントダウンモード：残り時間で計算
-    progress = (displayTimeLeft / totalTime) * 100;
+    progress = isAchieved ? 100 : (displayTimeLeft / totalTime) * 100;
   } else {
-    // 指定時刻モード：15分以下の時のみプログレス表示
+    // 指定時刻モード：15分間（900秒）から10秒前までの間で100%→0%
     const FIFTEEN_MINUTES = 15 * 60;
-    if (displayTimeLeft <= FIFTEEN_MINUTES) {
-      isWarning = true;
-      progress = (displayTimeLeft / FIFTEEN_MINUTES) * 100;
-    } else {
-      progress = 100;
-    }
+    const CRITICAL_TIME = 10;
 
-    // 10秒以下の時は秒数のみを表示（タイマーが実行中の場合のみ）
-    if (displayTimeLeft <= 10 && isRunning) {
-      displayElement = <span>{displayTimeLeft}</span>;
-      isCountdownDisplay = true;
+    if (isAchieved) {
+      progress = 100;
+    } else if (displayTimeLeft > CRITICAL_TIME && displayTimeLeft <= FIFTEEN_MINUTES) {
+      isWarning = true;
+      progress = ((displayTimeLeft - CRITICAL_TIME) / (FIFTEEN_MINUTES - CRITICAL_TIME)) * 100;
+    } else if (displayTimeLeft <= CRITICAL_TIME && displayTimeLeft > 0) {
+      // 10秒以下：赤いセグメントを表示
+      progress = 25;
+    } else {
+      progress = displayTimeLeft <= 0 ? 0 : 100;
     }
   }
 
-  const strokeDashoffset = (progress / 100) * circumference;
+  const gapLength = ((100 - progress) / 100) * circumference;
+  const activeLength = (progress / 100) * circumference;
+
+  // 10秒以下の場合、赤色とアニメーションをつける
+  const isCritical = displayTimeLeft <= 10 && displayTimeLeft > 0 && isRunning && !isAchieved;
 
   return (
-    <div className={`circular-progress ${isWarning ? 'warning' : ''} ${isAchieved ? 'achieved' : ''}`}>
-      <svg viewBox="0 0 200 200" className="progress-svg">
+    <div className={`circular-progress ${isWarning ? 'warning' : ''} ${isCritical ? 'critical' : ''} ${isAchieved ? 'achieved' : ''}`}>
+      <svg viewBox="0 0 200 200" className="progress-svg" role="img" style={{ transform: 'rotate(-90deg)' }}>
         {/* Background circle */}
         <circle
           cx="100"
@@ -68,8 +79,8 @@ const CircularProgress = ({
           r={radius}
           className="progress-circle"
           style={{
-            strokeDasharray: circumference,
-            strokeDashoffset: strokeDashoffset,
+            strokeDasharray: isCritical ? circumference : (isAchieved ? circumference : `0 ${gapLength} ${activeLength} ${circumference}`),
+            strokeDashoffset: isCritical ? circumference : 0,
           }}
         />
       </svg>
