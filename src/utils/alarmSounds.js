@@ -1,7 +1,7 @@
-// アラーム音再生ユーティリティ
+// Alarm sound playback utility
 
 // Fixed: Add error handling for AudioContext creation failures
-// AudioContextの再利用
+// Reuse AudioContext
 let audioContext = null;
 const getAudioContext = () => {
   if (!audioContext) {
@@ -15,11 +15,14 @@ const getAudioContext = () => {
   return audioContext;
 };
 
+// Volume Settings
+const VOLUME = 0.5;
+
 export const playAlarmSound = (audioContext, type) => {
   // audioContextがnullの場合は内部で取得
   const ctx = audioContext || getAudioContext();
 
-  // AudioContextが利用できない場合はスキップ
+  // Skip if AudioContext is not available
   if (!ctx) {
     console.warn('AudioContext not available, skipping sound playback');
     return;
@@ -48,7 +51,7 @@ const playBeepSound = (audioContext) => {
   gainNode.connect(audioContext.destination);
   oscillator.frequency.value = 800;
   oscillator.type = 'sine';
-  gainNode.gain.setValueAtTime(0.3, audioContext.currentTime);
+  gainNode.gain.setValueAtTime(VOLUME, audioContext.currentTime);
   gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.5);
   oscillator.start(audioContext.currentTime);
   oscillator.stop(audioContext.currentTime + 0.5);
@@ -61,7 +64,7 @@ const playLowSound = (audioContext) => {
   gainNode.connect(audioContext.destination);
   oscillator.frequency.value = 400;
   oscillator.type = 'sine';
-  gainNode.gain.setValueAtTime(0.3, audioContext.currentTime);
+  gainNode.gain.setValueAtTime(VOLUME, audioContext.currentTime);
   gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.8);
   oscillator.start(audioContext.currentTime);
   oscillator.stop(audioContext.currentTime + 0.8);
@@ -76,7 +79,7 @@ const playPhoneSound = (audioContext) => {
 
     osc1.frequency.value = 1000;
     osc1.type = 'sine';
-    gain1.gain.setValueAtTime(0.25, audioContext.currentTime + i * 0.4);
+    gain1.gain.setValueAtTime(VOLUME, audioContext.currentTime + i * 0.4);
     gain1.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + i * 0.4 + 0.2);
     osc1.start(audioContext.currentTime + i * 0.4);
     osc1.stop(audioContext.currentTime + i * 0.4 + 0.2);
@@ -88,7 +91,7 @@ const playPhoneSound = (audioContext) => {
 
     osc2.frequency.value = 500;
     osc2.type = 'sine';
-    gain2.gain.setValueAtTime(0.25, audioContext.currentTime + i * 0.4 + 0.2);
+    gain2.gain.setValueAtTime(VOLUME, audioContext.currentTime + i * 0.4 + 0.2);
     gain2.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + i * 0.4 + 0.4);
     osc2.start(audioContext.currentTime + i * 0.4 + 0.2);
     osc2.stop(audioContext.currentTime + i * 0.4 + 0.4);
@@ -104,7 +107,7 @@ const playPulseSound = (audioContext) => {
   oscillator.type = 'square';
 
   for (let i = 0; i < 3; i++) {
-    gainNode.gain.setValueAtTime(0.18, audioContext.currentTime + i * 0.25);
+    gainNode.gain.setValueAtTime(VOLUME, audioContext.currentTime + i * 0.25);
     gainNode.gain.setValueAtTime(0, audioContext.currentTime + i * 0.25 + 0.12);
   }
 
@@ -122,24 +125,24 @@ const playAscendingSound = (audioContext) => {
   oscillator.frequency.setValueAtTime(400, audioContext.currentTime);
   oscillator.frequency.linearRampToValueAtTime(1200, audioContext.currentTime + 0.8);
 
-  gainNode.gain.setValueAtTime(0.3, audioContext.currentTime);
+  gainNode.gain.setValueAtTime(VOLUME, audioContext.currentTime);
   gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.8);
 
   oscillator.start(audioContext.currentTime);
   oscillator.stop(audioContext.currentTime + 0.8);
 };
 
-// プレビュー再生関数
+// Preview playback function
 export const playAlarmPreview = (alarmType) => {
   const audioContext = getAudioContext();
 
-  // AudioContextが利用できない場合はスキップ
+  // Skip if AudioContext is not available
   if (!audioContext) {
     console.warn('AudioContext not available, cannot play preview');
     return { stop: () => {} };
   }
 
-  const duration = 5; // 5秒間
+  const duration = 5; // Total preview duration in seconds
   let intervalId = null;
   const timeoutIds = [];
 
@@ -161,8 +164,8 @@ export const playAlarmPreview = (alarmType) => {
         return;
       }
       soundFn(audioContext);
-      elapsed += 0.8; // 各音は最大0.8秒
-    }, 900); // 0.9秒間隔で再生
+      elapsed += 0.8; // approximate sound duration
+    }, 900); // interval between sounds
   };
 
   switch(alarmType) {
