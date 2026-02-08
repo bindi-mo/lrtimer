@@ -136,16 +136,28 @@ export const playAlarmPreview = (alarmType) => {
   // AudioContextが利用できない場合はスキップ
   if (!audioContext) {
     console.warn('AudioContext not available, cannot play preview');
-    return;
+    return { stop: () => {} };
   }
 
   const duration = 5; // 5秒間
+  let intervalId = null;
+  const timeoutIds = [];
+
+  const stop = () => {
+    if (intervalId) {
+      clearInterval(intervalId);
+      intervalId = null;
+    }
+    timeoutIds.forEach(id => clearTimeout(id));
+    timeoutIds.length = 0;
+  };
 
   const playMultiple = (soundFn) => {
     let elapsed = 0;
-    const interval = setInterval(() => {
+    intervalId = setInterval(() => {
       if (elapsed >= duration) {
-        clearInterval(interval);
+        clearInterval(intervalId);
+        intervalId = null;
         return;
       }
       soundFn(audioContext);
@@ -162,8 +174,8 @@ export const playAlarmPreview = (alarmType) => {
       break;
     case 'phone':
       playPhoneSound(audioContext);
-      setTimeout(() => playPhoneSound(audioContext), 1700);
-      setTimeout(() => playPhoneSound(audioContext), 3400);
+      timeoutIds.push(setTimeout(() => playPhoneSound(audioContext), 1700));
+      timeoutIds.push(setTimeout(() => playPhoneSound(audioContext), 3400));
       break;
     case 'pulse':
       playMultiple(playPulseSound);
@@ -174,4 +186,6 @@ export const playAlarmPreview = (alarmType) => {
     default:
       playMultiple(playBeepSound);
   }
+
+  return { stop };
 };

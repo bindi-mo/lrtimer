@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useTimerContext } from '../contexts/TimerContext';
 import { useScheduledTimer } from '../hooks/useScheduledTimer';
 import '../styles/Timer.css';
@@ -14,6 +14,7 @@ export default function Timer() {
   const [selectedAlarm, setSelectedAlarm] = useState('beep');
   // 初回起動時は時刻設定を表示する
   const [isEditMode, setIsEditMode] = useState(true);
+  const currentPreviewRef = useRef(null);
 
   // カスタムフックを使用
   const {
@@ -21,7 +22,6 @@ export default function Timer() {
     isScheduledRunning,
     isAchieved,
     showModal,
-    modalMessage,
     handleStart,
     handleStop,
     handleModalOk,
@@ -38,6 +38,11 @@ export default function Timer() {
       // 時刻設定モーダルが閉じられたのでタイマーを開始
       if (!isScheduledRunning) {
         handleStart();
+      }
+      // プレビュー音を停止
+      if (currentPreviewRef.current) {
+        currentPreviewRef.current.stop();
+        currentPreviewRef.current = null;
       }
     }
   }, [isEditMode, isScheduledRunning, handleStart, handleStop]);
@@ -145,13 +150,18 @@ export default function Timer() {
                 />
                 <div className="timer-edit-modal">
                   <div className="alarm-selector">
-                    <label htmlFor="alarm-select">アラーム音:</label>
                     <select
                       id="alarm-select"
                       value={selectedAlarm}
                       onChange={(e) => {
                         setSelectedAlarm(e.target.value);
-                        playAlarmPreview(e.target.value);
+                        // 既存のプレビューを停止
+                        if (currentPreviewRef.current) {
+                          currentPreviewRef.current.stop();
+                        }
+                        // 新しいプレビューを開始
+                        const preview = playAlarmPreview(e.target.value);
+                        currentPreviewRef.current = preview;
                       }}
                       disabled={isScheduledRunning}
                       className="alarm-select"
@@ -291,7 +301,13 @@ export default function Timer() {
                       value={selectedAlarm}
                       onChange={(e) => {
                         setSelectedAlarm(e.target.value);
-                        playAlarmPreview(e.target.value);
+                        // 既存のプレビューを停止
+                        if (currentPreviewRef.current) {
+                          currentPreviewRef.current.stop();
+                        }
+                        // 新しいプレビューを開始
+                        const preview = playAlarmPreview(e.target.value);
+                        currentPreviewRef.current = preview;
                       }}
                       disabled={isScheduledRunning}
                       className="alarm-select"
@@ -405,7 +421,7 @@ export default function Timer() {
       {showModal && (
         <div className="modal-overlay">
           <div className="modal-content">
-            <p>{modalMessage}</p>
+            <p>目標時刻に到達しました！</p>
             <button onClick={handleModalOk} className="btn btn-start">
               OK
             </button>

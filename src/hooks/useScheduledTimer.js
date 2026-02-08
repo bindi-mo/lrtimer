@@ -22,7 +22,6 @@ export const useScheduledTimer = (targetHour, targetMinute, targetSecond) => {
   const [isScheduledRunning, setIsScheduledRunning] = useState(false);
   const [isAchieved, setIsAchieved] = useState(false);
   const [showModal, setShowModal] = useState(false);
-  const [modalMessage, setModalMessage] = useState('');
 
   // 開始前の残り時間を計算
   const initialTimeLeft = useMemo(() => {
@@ -228,7 +227,6 @@ export const useScheduledTimer = (targetHour, targetMinute, targetSecond) => {
     isScheduledRunning,
     isAchieved,
     showModal,
-    modalMessage,
     handleStart,
     handleStop,
     handleModalOk,
