@@ -71,3 +71,9 @@ const { globalSettings, updateSettings } = useTimerContext();
 - `Notification`: Browser notification permission and display
 - `AudioContext`: Web Audio API for sound generation
 - No external APIs or server communication required
+
+## Code Style and Comments
+- **Comments**: All code comments must be written in **English**
+- Maintain consistency across the entire codebase
+- Use clear, descriptive comments that explain the "why" not just the "what"
+- Example: `// Delay execution to ensure state updates are processed` (good) vs `// delay` (bad)
