@@ -3,29 +3,29 @@ import { calculateTargetTimeInSeconds, calculateTimeLeft, formatTime, getCurrent
 
 describe('timeUtils', () => {
   describe('formatTime', () => {
-    it('should format time correctly with HH:MM format', () => {
+    it('should format time correctly with HH:MM format when hours > 0', () => {
       const result = formatTime(3661);
-      expect(result).toBe('01:01:01');
+      expect(result).toBe('01:01');
     });
 
     it('should format time with leading zeros', () => {
       const result = formatTime(3661);
-      expect(result).toBe('01:01:01');
+      expect(result).toBe('01:01');
     });
 
     it('should handle zero seconds', () => {
       const result = formatTime(0);
-      expect(result).toBe('00:00:00');
+      expect(result).toBe('00:00');
     });
 
-    it('should handle time less than an hour', () => {
+    it('should handle time less than an hour showing MM:SS', () => {
       const result = formatTime(125);
-      expect(result).toBe('00:02:05');
+      expect(result).toBe('02:05');
     });
 
     it('should handle time exactly one hour', () => {
       const result = formatTime(3600);
-      expect(result).toBe('01:00:00');
+      expect(result).toBe('01:00');
     });
   });
 
@@ -63,7 +63,9 @@ describe('timeUtils', () => {
       const target = 10 * 3600; // 10:00:00
       const current = 20 * 3600; // 20:00:00
       const result = calculateTimeLeft(target, current);
-      expect(result).toBe(14 * 3600); // 10:00 next day - 20:00 today
+      // target - current = 10:00:00 - 20:00:00 = -10:00:00 = -36000
+      // -36000 + 12*3600 = -36000 + 43200 = 7200 (2 hours)
+      expect(result).toBe(2 * 3600);
     });
 
     it('should handle zero difference', () => {

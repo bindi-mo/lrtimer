@@ -23,11 +23,8 @@ const CircularProgress = ({
   // カウントダウン中の表示用（別変数）
   let isCountdownDisplay = false;
 
-  // タイマーが完了したときは "完了" を表示
-  if (isAchieved) {
-    displayElement = <span>time up</span>;
-  } else if (!isStarting && displayTimeLeft <= 10 && isRunning) {
-    // 開始後、カウントダウン中の10-0秒は秒数のみを表示（countdownクラスを追加）
+  // 開始後、カウントダウン中の10-0秒は秒数のみを表示（countdownクラスを追加）
+  if (!isStarting && displayTimeLeft <= 10 && isRunning) {
     displayElement = <span>{displayTimeLeft}</span>;
     isCountdownDisplay = true;
   }
