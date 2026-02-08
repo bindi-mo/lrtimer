@@ -4,6 +4,7 @@ import { useScheduledTimer } from '../hooks/useScheduledTimer';
 import '../styles/Timer.css';
 import { playAlarmPreview } from '../utils/alarmSounds';
 import CircularProgress from './CircularProgress';
+import { MinusIcon, PlusIcon } from './TimeAdjustIcon';
 
 export default function Timer() {
   // Scheduled mode states
@@ -172,7 +173,7 @@ export default function Timer() {
                       onClick={() => incrementTime('hour')}
                       aria-label="時を増加"
                     >
-                      +
+                      <PlusIcon />
                     </button>
                     <div
                       className="time-display"
@@ -187,7 +188,7 @@ export default function Timer() {
                       onClick={() => decrementTime('hour')}
                       aria-label="時を減少"
                     >
-                      −
+                      <MinusIcon />
                     </button>
                   </div>
                   <span className="time-separator" aria-hidden="true">:</span>
@@ -197,7 +198,7 @@ export default function Timer() {
                       onClick={() => incrementTime('minute')}
                       aria-label="分を増加"
                     >
-                      +
+                      <PlusIcon />
                     </button>
                     <div
                       className="time-display"
@@ -212,7 +213,7 @@ export default function Timer() {
                       onClick={() => decrementTime('minute')}
                       aria-label="分を減少"
                     >
-                      −
+                      <MinusIcon />
                     </button>
                   </div>
                   <span className="time-separator" aria-hidden="true">:</span>
@@ -222,7 +223,7 @@ export default function Timer() {
                       onClick={() => incrementTime('second')}
                       aria-label="秒を増加"
                     >
-                      +
+                      <PlusIcon />
                     </button>
                     <div
                       className="time-display"
@@ -237,7 +238,7 @@ export default function Timer() {
                       onClick={() => decrementTime('second')}
                       aria-label="秒を減少"
                     >
-                      −
+                      <MinusIcon />
                     </button>
                   </div>
                 </div>
@@ -312,7 +313,7 @@ export default function Timer() {
                         onClick={() => incrementTime('hour')}
                         aria-label="時を増加"
                       >
-                        +
+                        <PlusIcon />
                       </button>
                       <div
                         className="time-display"
@@ -327,7 +328,7 @@ export default function Timer() {
                         onClick={() => decrementTime('hour')}
                         aria-label="時を減少"
                       >
-                        −
+                        <MinusIcon />
                       </button>
                     </div>
                     <span className="time-separator" aria-hidden="true">:</span>
@@ -337,7 +338,7 @@ export default function Timer() {
                         onClick={() => incrementTime('minute')}
                         aria-label="分を増加"
                       >
-                        +
+                        <PlusIcon />
                       </button>
                       <div
                         className="time-display"
@@ -352,7 +353,7 @@ export default function Timer() {
                         onClick={() => decrementTime('minute')}
                         aria-label="分を減少"
                       >
-                        −
+                        <MinusIcon />
                       </button>
                     </div>
                     <span className="time-separator" aria-hidden="true">:</span>
@@ -362,7 +363,7 @@ export default function Timer() {
                         onClick={() => incrementTime('second')}
                         aria-label="秒を増加"
                       >
-                        +
+                        <PlusIcon />
                       </button>
                       <div
                         className="time-display"
@@ -377,7 +378,7 @@ export default function Timer() {
                         onClick={() => decrementTime('second')}
                         aria-label="秒を減少"
                       >
-                        −
+                        <MinusIcon />
                       </button>
                     </div>
                   </div>
