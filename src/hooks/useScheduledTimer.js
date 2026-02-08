@@ -182,6 +182,27 @@ export const useScheduledTimer = (targetHour, targetMinute, targetSecond) => {
         // 秒数を更新（isAchievedでも更新する）
         setScheduledTimeLeft(secondsLeft);
 
+        // 15分前の通知をトリガー
+        if (
+          secondsLeft <= NOTIFICATION_THRESHOLDS.FIFTEEN_MIN &&
+          notificationRef.current.prev15min !== NOTIFICATION_THRESHOLDS.PRE_15_TARGET
+        ) {
+          notificationRef.current.prev15min = NOTIFICATION_THRESHOLDS.PRE_15_TARGET;
+          setShowModal(true);
+          // 'phone' は目立つ音なので15分通知に使用
+          startAlarmForDuration(NOTIFICATION_THRESHOLDS.ALARM_DURATION, 'phone');
+        }
+
+        // 5分前の通知をトリガー
+        if (
+          secondsLeft <= NOTIFICATION_THRESHOLDS.FIVE_MIN &&
+          notificationRef.current.prev5min !== NOTIFICATION_THRESHOLDS.PRE_5_TARGET
+        ) {
+          notificationRef.current.prev5min = NOTIFICATION_THRESHOLDS.PRE_5_TARGET;
+          setShowModal(true);
+          startAlarmForDuration(NOTIFICATION_THRESHOLDS.ALARM_DURATION, 'phone');
+        }
+
         // 目標時刻に到達したらisAchievedをtrueにする
         const diff = targetInSeconds - timeInSeconds;
         if (diff <= 0 && notificationRef.current.prevFinal !== NOTIFICATION_THRESHOLDS.COMPLETION) {
