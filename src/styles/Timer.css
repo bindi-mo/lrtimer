@@ -29,8 +29,8 @@
   --border-radius-xs: 8px;
 
   /* Sizes */
-  --progress-size: 320px;
-  --progress-size-mobile: 220px;
+  --progress-size: 330px;
+  --progress-size-mobile: 240px;
   --progress-size-tablet: 260px;
   --button-size: 40px;
   --button-size-mobile: 35px;
@@ -518,10 +518,12 @@ html[data-theme='dark'] .schedule-btn.disabled {
 
 
 
+@media (width <= 600px) {
   .circular-progress {
     width: var(--progress-size-mobile);
     height: var(--progress-size-mobile);
   }
+}
 
   .timer-input-container {
     flex-direction: column;
