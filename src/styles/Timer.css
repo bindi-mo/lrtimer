@@ -318,7 +318,6 @@ html[data-theme='light'] {
   font-weight: bold;
   border-radius: var(--border-radius-small);
   cursor: pointer;
-  transition: all var(--transition-fast);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -334,19 +333,15 @@ html[data-theme='light'] {
   fill: none;
 }
 
-.time-adjust-btn:focus {
-  outline: 3px solid var(--primary-color);
-  outline-offset: 2px;
-}
-
-.time-adjust-btn:hover {
-  background: rgba(100, 181, 246, 0.2);
-  box-shadow: var(--shadow-progress);
-  transform: scale(1.05);
-}
-
+.time-adjust-btn:focus,
+.time-adjust-btn:focus-visible,
+.time-adjust-btn:hover,
 .time-adjust-btn:active {
-  transform: scale(0.95);
+  outline: none;
+  box-shadow: none;
+  background: rgba(100, 181, 246, 0.1);
+  transform: none;
+  border-color: var(--primary-color);
 }
 
 .time-separator {
