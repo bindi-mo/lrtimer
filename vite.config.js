@@ -12,7 +12,7 @@ export default defineConfig({
       manifest: {
         name: 'LR Timer',
         short_name: 'LRTimer',
-        description: 'Lineage Remasteredのボス出現時刻通知タイマー',
+        description: 'Lineage Remasteredのカウントダウンタイマー',
         theme_color: '#ffffff',
         background_color: '#ffffff',
         display: 'standalone',
