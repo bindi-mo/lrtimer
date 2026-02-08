@@ -3,6 +3,8 @@ import { useTimerContext } from '../contexts/TimerContext';
 import { useScheduledTimer } from '../hooks/useScheduledTimer';
 import '../styles/Timer.css';
 import { playAlarmPreview } from '../utils/alarmSounds';
+import { calculateTargetTimeInSeconds } from '../utils/timeUtils';
+
 import CircularProgress from './CircularProgress';
 import { MinusIcon, PlusIcon } from './TimeAdjustIcon';
 
@@ -34,16 +36,6 @@ export default function Timer() {
   const [isEditMode, setIsEditMode] = useState(true);
   const currentPreviewRef = useRef(null);
 
-  // カスタムフックを使用
-  const {
-    scheduledTimeLeft,
-    isScheduledRunning,
-    isAchieved,
-    showModal,
-    handleStart,
-    handleStop,
-    handleModalOk,
-  } = useScheduledTimer(targetHour, targetMinute, targetSecond);
 
   // Save target time to localStorage whenever it changes
   const saveTargetTime = useCallback(() => {
@@ -62,6 +54,113 @@ export default function Timer() {
     saveTargetTime();
   }, [saveTargetTime]);
 
+
+
+  // スケジュールのリスト（配列に入っている順）
+  const schedules = useMemo(() => {
+    const t1Sec = calculateTargetTimeInSeconds(targetHour, targetMinute, targetSecond);
+    const t2Hour = (parseInt(targetHour, 10) + 12) % 24;
+    const t2HourStr = String(t2Hour).padStart(2, '0');
+    const t2Str = `${t2HourStr}:${targetMinute}:${targetSecond}`;
+    const t2Sec = calculateTargetTimeInSeconds(t2HourStr, targetMinute, targetSecond);
+
+    // 秒（時刻の数字）が小さい順に配列へ格納して返す
+    // 小さい方（時刻数字が若い方）を先にして配列に格納
+    if (t1Sec <= t2Sec) {
+      return [
+        { first: `${targetHour}:${targetMinute}:${targetSecond}`, seconds: t1Sec },
+        { first: t2Str, seconds: t2Sec },
+      ];
+    }
+
+    return [
+      { first: t2Str, seconds: t2Sec },
+      { first: `${targetHour}:${targetMinute}:${targetSecond}`, seconds: t1Sec },
+    ];
+  }, [targetHour, targetMinute, targetSecond]);
+
+  // enabled 状態を localStorage に保存するマップ（キーは秒数）
+  const loadEnabledMap = () => {
+    try {
+      const raw = localStorage.getItem('lrtimer_enabled_map');
+      if (raw) return JSON.parse(raw);
+    } catch (e) {
+      console.error('Failed to load enabled map:', e);
+    }
+    return {};
+  };
+
+  const [enabledMap, setEnabledMap] = useState(() => loadEnabledMap());
+
+
+
+  // enabledMap を localStorage に保存
+  useEffect(() => {
+    try {
+      localStorage.setItem('lrtimer_enabled_map', JSON.stringify(enabledMap || {}));
+    } catch (e) {
+      console.error('Failed to save enabled map:', e);
+    }
+  }, [enabledMap]);
+
+  const toggleEnabled = (seconds) => {
+    const k = String(seconds);
+    setEnabledMap((prev) => {
+      const cur = prev || {};
+      const next = { ...cur, [k]: !cur[k] };
+      try {
+        localStorage.setItem('lrtimer_enabled_map', JSON.stringify(next));
+      } catch (e) {
+        console.error('Failed to save enabled map:', e);
+      }
+      return next;
+    });
+  };
+
+  // 有効なスケジュールから、現在時刻に対して最も近い（24時間単位での次回）ものをアクティブにする
+  // すべて無効の場合は null を返す
+  const activeSchedule = useMemo(() => {
+    const now = new Date();
+    const nowSec = now.getHours() * 3600 + now.getMinutes() * 60 + now.getSeconds();
+    const enabled = schedules.filter((s) => (enabledMap ? enabledMap[String(s.seconds)] : true));
+    if (enabled.length === 0) return null;
+
+    const candidates = enabled;
+    let best = candidates[0];
+    const delta24 = (sec) => {
+      let d = sec - nowSec;
+      if (d <= 0) d += 24 * 3600;
+      return d;
+    };
+    let bestLeft = delta24(best.seconds);
+
+    candidates.forEach((c) => {
+      const left = delta24(c.seconds);
+      if (left < bestLeft) {
+        best = c;
+        bestLeft = left;
+      }
+    });
+
+    return best;
+  }, [schedules, enabledMap]);
+
+  const [activeHour, activeMinute, activeSecond] = useMemo(() => {
+    if (!activeSchedule) return ['00','00','00'];
+    const parts = activeSchedule.first.split(':');
+    return [parts[0], parts[1], parts[2]];
+  }, [activeSchedule]);
+
+  // カスタムフックを使用（アクティブなスケジュールを渡す）
+  const {
+    isScheduledRunning,
+    isAchieved,
+    showModal,
+    handleStart,
+    handleStop,
+    handleModalOk,
+  } = useScheduledTimer(activeHour, activeMinute, activeSecond);
+
   // モーダルが閉じられたときにタイマーを開始、開かれたときは停止
   useEffect(() => {
     if (isEditMode) {
@@ -70,8 +169,8 @@ export default function Timer() {
         handleStop();
       }
     } else {
-      // 時刻設定モーダルが閉じられたのでタイマーを開始
-      if (!isScheduledRunning) {
+      // 時刻設定モーダルが閉じられたのでタイマーを開始（ただし有効なスケジュールがある場合のみ）
+      if (!isScheduledRunning && activeSchedule) {
         handleStart();
       }
       // プレビュー音を停止
@@ -80,20 +179,42 @@ export default function Timer() {
         currentPreviewRef.current = null;
       }
     }
-  }, [isEditMode, isScheduledRunning, handleStart, handleStop]);
+  }, [isEditMode, isScheduledRunning, handleStart, handleStop, activeSchedule]);
 
-  // メモ化された計算値
-  const timeLeft = useMemo(() => {
-    return scheduledTimeLeft;
-  }, [scheduledTimeLeft]);
+  // activeSchedule が null（すべて無効）になったら実行中であれば停止する
+  useEffect(() => {
+    if (!activeSchedule && isScheduledRunning) {
+      handleStop();
+    }
+  }, [activeSchedule, isScheduledRunning, handleStop]);
 
-  // 12時間後の時間を計算
-  const next12HourTime = useMemo(() => {
-    const hour = (parseInt(targetHour) + 12) % 24;
-    return `${String(hour).padStart(2, '0')}:${targetMinute}:${targetSecond}`;
-  }, [targetHour, targetMinute, targetSecond]);
 
-  // コールバック関数をメモ化
+
+  // Visible time left (kept in component to ensure UI updates immediately when activeSchedule changes)
+  const [visibleTimeLeft, setVisibleTimeLeft] = useState(null);
+
+  useEffect(() => {
+    if (!activeSchedule) {
+      // avoid synchronous setState in effect body -> defer to next tick
+      const t = setTimeout(() => setVisibleTimeLeft(null), 0);
+      return () => clearTimeout(t);
+    }
+
+    const update = () => {
+      const now = new Date();
+      const nowSec = now.getHours() * 3600 + now.getMinutes() * 60 + now.getSeconds();
+      let left = activeSchedule.seconds - nowSec;
+      if (left <= 0) left += 24 * 3600; // next occurrence for this exact schedule within 24h
+      setVisibleTimeLeft(left);
+    };
+
+    update();
+    const id = setInterval(update, 1000);
+    return () => clearInterval(id);
+  }, [activeSchedule]);
+
+  // timeLeft is driven by visibleTimeLeft to ensure the circle updates smoothly
+  const timeLeft = visibleTimeLeft;
   const incrementTime = useCallback((type) => {
     if (type === 'hour') {
       const newVal = (parseInt(targetHour) + 1) % 24;
@@ -157,12 +278,23 @@ export default function Timer() {
             {!isEditMode ? (
               // Display-only mode
               <div className="timer-display-mode">
-                <div className="time-display-large">
-                  {targetHour}:{targetMinute}:{targetSecond}
-                </div>
-                <div className="time-display-large">
-                  {next12HourTime}
-                </div>
+                  {schedules.map((s) => {
+                  // undefined（キー未設定）はデフォルトで true にする
+                  const enabled = enabledMap?.[String(s.seconds)] ?? true;
+                  return (
+                    <button
+                      key={s.first}
+                      type="button"
+                      className={`schedule-btn ${enabled ? 'enabled' : 'disabled'} ${activeSchedule && s.seconds === activeSchedule.seconds ? 'active' : ''}`}
+                      onClick={() => toggleEnabled(s.seconds)}
+                      aria-pressed={enabled}
+                      aria-label={`${s.first} の有効/無効切替`}
+                    >
+                      <span className="schedule-text">{s.first}</span>
+                      <span className="schedule-indicator" aria-hidden="true">{enabled ? '●' : '○'}</span>
+                    </button>
+                  );
+                })}
                 <div className="timer-display-actions">
                   <button
                     onClick={() => setIsEditMode(true)}
@@ -303,12 +435,22 @@ export default function Timer() {
         {isScheduledRunning && (
           <>
             <div className="timer-display-mode">
-              <div className="time-display-large">
-                {targetHour}:{targetMinute}:{targetSecond}
-              </div>
-              <div className="time-display-large">
-                {next12HourTime}
-              </div>
+              {schedules.map((s) => {
+                const enabled = enabledMap?.[String(s.seconds)] ?? true;
+                return (
+                  <button
+                    key={s.first}
+                    type="button"
+                    className={`schedule-btn ${enabled ? 'enabled' : 'disabled'}`}
+                    onClick={() => toggleEnabled(s.seconds)}
+                    aria-pressed={enabled}
+                    aria-label={`${s.first} の有効/無効切替`}
+                  >
+                    <span className="schedule-text">{s.first}</span>
+                    <span className="schedule-indicator" aria-hidden="true">{enabled ? '●' : '○'}</span>
+                  </button>
+                );
+              })}
               <button
                 onClick={() => setIsEditMode(!isEditMode)}
                 className="btn btn-edit"

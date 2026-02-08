@@ -13,17 +13,17 @@
   --success-color: #4CAF50;
   --success-hover: #45a049;
   --text-color: #e0e0e0;
-  --text-secondary: rgba(224, 224, 224, 0.7);
+  --text-secondary: rgb(224 224 224 / 70%);
 
   /* Backgrounds */
-  --background-overlay: rgba(255, 255, 255, 0.05);
-  --background-glass: rgba(255, 255, 255, 0.1);
-  --background-modal: rgba(0, 0, 0, 0.7);
-  --background-modal-content: rgba(20, 20, 20, 0.95);
+  --background-overlay: rgb(255 255 255 / 5%);
+  --background-glass: rgb(255 255 255 / 10%);
+  --background-modal: rgb(0 0 0 / 70%);
+  --background-modal-content: rgb(20 20 20 / 95%);
 
   /* Borders */
-  --border-color: rgba(255, 255, 255, 0.1);
-  --border-primary: rgba(100, 181, 246, 0.5);
+  --border-color: rgb(255 255 255 / 10%);
+  --border-primary: rgb(100 181 246 / 50%);
   --border-radius: 16px;
   --border-radius-small: 12px;
   --border-radius-xs: 8px;
@@ -54,11 +54,11 @@
   --spacing-xxl: 40px;
 
   /* Shadows */
-  --shadow-primary: 0 4px 16px rgba(0, 0, 0, 0.3);
-  --shadow-hover: 0 6px 24px rgba(76, 175, 80, 0.4);
-  --shadow-modal: 0 8px 32px rgba(0, 0, 0, 0.4);
-  --shadow-progress: 0 0 8px rgba(100, 181, 246, 0.3);
-  --shadow-text: 0 2px 8px rgba(100, 181, 246, 0.3);
+  --shadow-primary: 0 4px 16px rgb(0 0 0 / 30%);
+  --shadow-hover: 0 6px 24px rgb(76 175 80 / 40%);
+  --shadow-modal: 0 8px 32px rgb(0 0 0 / 40%);
+  --shadow-progress: 0 0 8px rgb(100 181 246 / 30%);
+  --shadow-text: 0 2px 8px rgb(100 181 246 / 30%);
 
   /* Animations */
   --transition-fast: 0.2s ease;
@@ -70,6 +70,9 @@
   /* Opacity */
   --opacity-disabled: 0.5;
   --opacity-secondary: 0.7;
+
+  /* schedule button color for disabled state (theme-aware) */
+  --schedule-disabled: rgb(48 48 48 / 100%);
 }
 
 /* Light theme overrides */
@@ -82,21 +85,19 @@ html[data-theme='light'] {
   --success-color: #16a34a;
   --success-hover: #15803d;
   --text-color: #1f2937;
-  --text-secondary: rgba(31, 41, 55, 0.7);
-
-  --background-overlay: rgba(0, 0, 0, 0.05);
-  --background-glass: rgba(0, 0, 0, 0.05);
-  --background-modal: rgba(0, 0, 0, 0.5);
-  --background-modal-content: rgba(255, 255, 255, 0.98);
-
-  --border-color: rgba(0, 0, 0, 0.1);
-  --border-primary: rgba(30, 64, 175, 0.3);
-
-  --shadow-primary: 0 4px 16px rgba(0, 0, 0, 0.15);
-  --shadow-hover: 0 6px 24px rgba(22, 163, 74, 0.3);
-  --shadow-modal: 0 8px 32px rgba(0, 0, 0, 0.2);
-  --shadow-progress: 0 0 8px rgba(30, 64, 175, 0.2);
-  --shadow-text: 0 2px 8px rgba(30, 64, 175, 0.2);
+  --text-secondary: rgb(31 41 55 / 70%);
+  --schedule-disabled: rgb(31 41 55 / 75%);
+  --background-overlay: rgb(0 0 0 / 5%);
+  --background-glass: rgb(0 0 0 / 5%);
+  --background-modal: rgb(0 0 0 / 50%);
+  --background-modal-content: rgb(255 255 255 / 98%);
+  --border-color: rgb(0 0 0 / 10%);
+  --border-primary: rgb(30 64 175 / 30%);
+  --shadow-primary: 0 4px 16px rgb(0 0 0 / 15%);
+  --shadow-hover: 0 6px 24px rgb(22 163 74 / 30%);
+  --shadow-modal: 0 8px 32px rgb(0 0 0 / 20%);
+  --shadow-progress: 0 0 8px rgb(30 64 175 / 20%);
+  --shadow-text: 0 2px 8px rgb(30 64 175 / 20%);
 }
 
 .timer-container {
@@ -122,13 +123,13 @@ html[data-theme='light'] {
   z-index: 10;
 }
 
-@media (max-width: 600px) {
+@media (width <= 600px) {
   .timer-container h1 {
     display: none !important;
   }
 }
 
-@media (max-height: 500px) {
+@media (height <= 500px) {
   .timer-container h1 {
     display: none !important;
   }
@@ -142,17 +143,16 @@ html[data-theme='light'] {
   position: relative;
   top: auto;
   left: auto;
-  font-family: 'Outfit', sans-serif;
+  font-family: Outfit, sans-serif;
 }
 
-@media (min-width: 800px) {
+@media (width >= 800px) {
   .timer-container {
     display: grid;
     grid-template-columns: 1fr 1fr;
     grid-template-rows: auto auto;
     gap: 20px;
-    align-items: center;
-    justify-items: center;
+    place-items: center center;
   }
 
   .date-display {
@@ -207,35 +207,38 @@ html[data-theme='light'] {
 }
 
 .circular-progress.critical .progress-circle {
-  stroke: #ff3333;
-  animation: criticalFill 1s linear infinite;
+  stroke: #f33;
+  animation: critical-fill 1s linear infinite;
 }
 
 .circular-progress.achieved .progress-circle {
-  stroke: #ff3333;
-  animation: achievedFlash var(--animation-duration) var(--animation-timing) infinite;
+  stroke: #f33;
+  animation: achieved-flash var(--animation-duration) var(--animation-timing) infinite;
 }
 
-@keyframes criticalFill {
+@keyframes critical-fill {
   0% {
     stroke-dashoffset: 565.48; /* circumference for radius 90 */
   }
+
   100% {
     stroke-dashoffset: 0;
   }
 }
 
 .circular-progress.achieved {
-  animation: achievedFlash var(--animation-duration) var(--animation-timing) infinite;
+  animation: achieved-flash var(--animation-duration) var(--animation-timing) infinite;
 }
 
-@keyframes achievedFlash {
+@keyframes achieved-flash {
   0% {
     opacity: 1;
   }
+
   50% {
     opacity: 0;
   }
+
   100% {
     opacity: 1;
   }
@@ -249,7 +252,7 @@ html[data-theme='light'] {
   font-size: 2.4rem;
   font-weight: bold;
   color: var(--primary-color);
-  font-family: 'Michroma', 'Courier New', monospace;
+  font-family: Michroma, 'Courier New', monospace;
   text-shadow: var(--shadow-text);
 }
 
@@ -266,6 +269,8 @@ html[data-theme='light'] {
   padding: var(--spacing-md) var(--spacing-lg);
   border-radius: var(--border-radius);
   backdrop-filter: blur(10px);
+  border: 1px solid var(--border-color);
+  margin-bottom: 0;
 }
 
 .timer-input-container {
@@ -276,32 +281,13 @@ html[data-theme='light'] {
   margin-bottom: var(--spacing-xl);
 }
 
-.timer-input {
-  display: flex;
-  align-items: center;
-  gap: var(--spacing-xs);
-  background: var(--background-overlay);
-  padding: var(--spacing-md) var(--spacing-lg);
-  border-radius: var(--border-radius);
-  backdrop-filter: blur(10px);
-  border: 1px solid var(--border-color);
-  margin-bottom: 0;
-}
-
-.time-input-group {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: var(--spacing-xs);
-}
-
 .time-display {
   font-size: 1.2rem;
   font-weight: bold;
   color: var(--primary-color);
   width: 60px;
   text-align: center;
-  font-family: 'Michroma', 'Courier New', monospace;
+  font-family: Michroma, 'Courier New', monospace;
   min-height: 50px;
   display: flex;
   align-items: center;
@@ -312,7 +298,7 @@ html[data-theme='light'] {
   width: var(--button-size);
   height: var(--button-size);
   border: 2px solid var(--primary-color);
-  background: rgba(100, 181, 246, 0.1);
+  background: rgb(100 181 246 / 10%);
   color: var(--primary-color);
   font-size: 1.5rem;
   font-weight: bold;
@@ -329,7 +315,7 @@ html[data-theme='light'] {
   height: 22px;
   display: block;
   color: inherit;
-  stroke: currentColor;
+  stroke: currentcolor;
   fill: none;
 }
 
@@ -339,7 +325,7 @@ html[data-theme='light'] {
 .time-adjust-btn:active {
   outline: none;
   box-shadow: none;
-  background: rgba(100, 181, 246, 0.1);
+  background: rgb(100 181 246 / 10%);
   transform: none;
   border-color: var(--primary-color);
 }
@@ -394,7 +380,7 @@ html[data-theme='light'] {
 
 .btn-pause:hover:not(:disabled) {
   background: linear-gradient(135deg, var(--warning-hover) 0%, #e65100 100%);
-  box-shadow: 0 6px 24px rgba(255, 152, 0, 0.4);
+  box-shadow: 0 6px 24px rgb(255 152 0 / 40%);
   transform: translateY(-2px);
 }
 
@@ -437,23 +423,23 @@ html[data-theme='light'] {
 }
 
 .theme-toggle-mobile:hover {
-  background: rgba(100, 181, 246, 0.1);
+  background: rgb(100 181 246 / 10%);
   border-color: var(--primary-color);
 }
 
-@media (max-width: 600px) {
+@media (width <= 600px) {
   .theme-toggle-mobile {
     display: block;
   }
 }
 
-@media (max-height: 500px) {
+@media (height <= 500px) {
   .theme-toggle-mobile {
     display: block;
   }
 }
 
-@media (min-width: 800px) {
+@media (width >= 800px) {
   .timer-mode {
     flex-direction: row;
     align-items: flex-start;
@@ -472,6 +458,7 @@ html[data-theme='light'] {
   from {
     opacity: 0;
   }
+
   to {
     opacity: 1;
   }
@@ -479,7 +466,7 @@ html[data-theme='light'] {
 
 
 
-@media (max-width: 600px) {
+@media (width <= 600px) {
   .timer-container h1 {
     font-size: var(--font-size-title-mobile);
     margin-bottom: var(--spacing-lg);
@@ -490,11 +477,46 @@ html[data-theme='light'] {
     min-width: 250px;
     padding: 30px 20px;
   }
+}
+
+/* Light theme: make schedule time text darker for better contrast */
+html[data-theme='light'] .schedule-btn .schedule-text {
+  color: rgb(17 24 39 / 95%); /* darker than default */
+}
+
+html[data-theme='light'] .schedule-btn.disabled .schedule-text {
+  color: rgb(15 23 42 / 30%); /* slightly more faint for disabled state */
+}
+
+/* Light theme: slightly darker border for disabled schedule buttons to improve visibility */
+html[data-theme='light'] .schedule-btn.disabled {
+  border-color: rgb(0 0 0 / 8%); /* subtle increase from 4% to 8% */
+}
+
+/* Dark theme: make button borders brighter for better contrast */
+html[data-theme='dark'] .schedule-btn {
+  border-color: rgb(255 255 255 / 12%);
+}
+
+html[data-theme='dark'] .schedule-btn.enabled {
+  border-color: rgb(255 255 255 / 18%);
+}
+
+html[data-theme='dark'] .schedule-btn.active {
+  border-color: rgb(100 181 246 / 90%); /* keep accent visible when active */
+}
+
+/* Dark theme: slightly darker border for disabled state */
+html[data-theme='dark'] .schedule-btn.disabled {
+  border-color: rgb(255 255 255 / 8%); /* increased from 4% to 8% for better visibility */
+}
 
   .timer-display .time,
   .scheduled-display .time {
     font-size: 2.5rem;
   }
+
+
 
   .circular-progress {
     width: var(--progress-size-mobile);
@@ -541,7 +563,6 @@ html[data-theme='light'] {
   .notifications-status {
     min-width: 100%;
   }
-}
 
 .alarm-selector {
   margin-top: 0;
@@ -566,7 +587,7 @@ html[data-theme='light'] {
 }
 
 .alarm-select:hover:not(:disabled) {
-  background: rgba(100, 181, 246, 0.1);
+  background: rgb(100 181 246 / 10%);
   border-color: var(--primary-color);
   box-shadow: var(--shadow-progress);
 }
@@ -579,11 +600,10 @@ html[data-theme='light'] {
 .alarm-select option {
   background: var(--background-modal-content);
   color: var(--text-color);
-  background-color: var(--background-modal-content);
 }
 
 html[data-theme='light'] .alarm-select option {
-  background: #ffffff;
+  background: #fff;
   color: #1f2937;
 }
 
@@ -624,20 +644,18 @@ html[data-theme='dark'] .alarm-select option {
 }
 
 /* Mobile landscape mode */
-@media (orientation: landscape) and (max-width: 900px) {
+@media (orientation: landscape) and (width <= 900px) {
   .circular-progress {
     width: var(--progress-size-tablet);
     height: var(--progress-size-tablet);
-    margin: 18px auto 0 auto;
+    margin: 18px auto 0;
   }
 }
+
 /* Modal */
 .modal-overlay {
   position: fixed;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
+  inset: 0;
   background: var(--background-modal);
   display: flex;
   align-items: center;
@@ -683,9 +701,81 @@ html[data-theme='dark'] .alarm-select option {
   font-size:1.8rem;
   font-weight: bold;
   color: var(--primary-color);
-  font-family: 'Michroma', 'Courier New', monospace;
+  font-family: Michroma, 'Courier New', monospace;
   text-shadow: var(--shadow-text);
   letter-spacing: 3px;
+}
+
+.schedule-btn {
+  display: inline-block;
+  background: transparent;
+  border: 1px solid rgb(0 0 0 / 8%);
+  color: var(--text-color);
+  padding: 10px 18px;
+  border-radius: 8px;
+  font-size: 1.6rem;
+  min-width: 200px;
+  text-align: center;
+  cursor: pointer;
+  transition: background-color 120ms ease, color 120ms ease, opacity 120ms ease, transform 120ms ease;
+  opacity: 0.85; /* 控えめ */
+}
+
+@media (width <= 600px) {
+  .schedule-btn {
+    padding: 8px 12px;
+    font-size: 1.3rem;
+    min-width: 160px;
+  }
+
+  .schedule-btn .schedule-text {
+    font-size: 1.3rem;
+  }
+}
+
+.schedule-btn.enabled {
+  background: linear-gradient(90deg, rgb(255 255 255 / 4%), rgb(255 255 255 / 2%));
+  color: var(--primary-color);
+  border-color: rgb(0 0 0 / 12%);
+  opacity: 1;
+  box-shadow: 0 1px 0 rgb(0 0 0 / 4%);
+}
+
+.schedule-btn.active {
+  border-color: var(--primary-color);
+  box-shadow: 0 2px 8px rgb(100 181 246 / 12%);
+  transform: translateY(-1px);
+}
+
+.schedule-btn.disabled {
+  background: transparent;
+  color: var(--schedule-disabled);
+  border-color: rgb(0 0 0 / 4%);
+}
+
+.schedule-btn .schedule-text {
+  font-size: 1.6rem;
+  font-weight: 600;
+}
+
+.schedule-btn .schedule-indicator {
+  margin-left: 8px;
+  font-size: 1rem;
+  color: currentcolor;
+  opacity: 0.9;
+}
+
+.schedule-btn.enabled .schedule-indicator {
+  color: var(--primary-color);
+}
+
+.schedule-btn.disabled .schedule-indicator {
+  color: rgb(0 0 0 / 45%);
+}
+
+.schedule-btn:focus {
+  outline: 2px solid rgb(0 0 0 / 8%);
+  outline-offset: 2px;
 }
 
 .timer-display-actions {
@@ -730,7 +820,7 @@ html[data-theme='dark'] .alarm-select option {
 }
 
 .btn-cancel:hover {
-  background: rgba(100, 181, 246, 0.1);
+  background: rgb(100 181 246 / 10%);
   border-color: var(--primary-color);
 }
 
@@ -742,16 +832,12 @@ html[data-theme='dark'] .alarm-select option {
 .edit-mode-overlay {
   display: none;
   position: fixed;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  background: rgba(0, 0, 0, 0.5);
+  inset: 0;
+  background: rgb(0 0 0 / 50%);
   z-index: 998;
 }
 
 .timer-edit-modal {
-  display: none;
   position: fixed;
   top: 50%;
   left: 50%;
@@ -770,7 +856,7 @@ html[data-theme='dark'] .alarm-select option {
   gap: var(--spacing-lg);
 }
 
-@media (max-width: 600px) {
+@media (width <= 600px) {
   .edit-mode-overlay {
     display: block;
   }
@@ -782,7 +868,7 @@ html[data-theme='dark'] .alarm-select option {
   }
 }
 
-@media (max-height: 500px) {
+@media (height <= 500px) {
   .edit-mode-overlay {
     display: block;
   }
