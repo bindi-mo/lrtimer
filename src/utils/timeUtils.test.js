@@ -5,12 +5,12 @@ describe('timeUtils', () => {
   describe('formatTime', () => {
     it('should format time correctly with HH:MM format when hours > 0', () => {
       const result = formatTime(3661);
-      expect(result).toBe('01:01');
+      expect(result).toBe('01:02');
     });
 
     it('should format time with leading zeros', () => {
       const result = formatTime(3661);
-      expect(result).toBe('01:01');
+      expect(result).toBe('01:02');
     });
 
     it('should handle zero seconds', () => {
@@ -23,14 +23,25 @@ describe('timeUtils', () => {
       expect(result).toBe('02:05');
     });
 
-    it('should handle time exactly 15 minutes showing HH:MM', () => {
-      const result = formatTime(900);
-      expect(result).toBe('00:15');
+    it('should round up one minute when showing hours:minutes (hours>0)', () => {
+      // 18:34:20 -> 18:35
+      const input = 18 * 3600 + 34 * 60 + 20;
+      expect(formatTime(input)).toBe('18:35');
+    });
+
+    it('should add one minute for minute-only display (00:15 -> 00:16)', () => {
+      expect(formatTime(900)).toBe('16:00');
+      expect(formatTime(959)).toBe('16:00');
+    });
+
+    it('should handle hour rollover when rounding (18:59 -> 19:00)', () => {
+      const input = 18 * 3600 + 59 * 60; // 18:59:00
+      expect(formatTime(input)).toBe('19:00');
     });
 
     it('should handle time exactly one hour', () => {
       const result = formatTime(3600);
-      expect(result).toBe('01:00');
+      expect(result).toBe('01:01');
     });
   });
 
@@ -100,6 +111,19 @@ describe('timeUtils', () => {
       const time1 = getCurrentTimeInSeconds();
       const time2 = getCurrentTimeInSeconds();
       expect(time2).toBeGreaterThanOrEqual(time1);
+    });
+
+    it('should never output invalid seconds (>= 60) in formatted output', () => {
+      for (let s = 0; s < 24 * 3600; s += 1) {
+        const out = formatTime(s);
+        // formatTime always returns two parts separated by ':' (HH:MM or MM:SS)
+        const parts = out.split(':');
+        expect(parts.length).toBe(2);
+        const sec = parseInt(parts[1], 10);
+        expect(Number.isNaN(sec)).toBe(false);
+        // seconds portion must be less than 60
+        expect(sec).toBeLessThan(60);
+      }
     });
   });
 });

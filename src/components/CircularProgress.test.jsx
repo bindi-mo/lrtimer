@@ -25,8 +25,8 @@ describe('CircularProgress', () => {
         isRunning={true}
       />
     );
-    // formatTime(3661) returns "01:01" (HH:MM format when hours > 0)
-    expect(screen.getByText(/01:01/)).toBeInTheDocument();
+    // formatTime(3661) now returns "01:02" (HH:MM format when hours > 0 + 1 minute)
+    expect(screen.getByText(/01:02/)).toBeInTheDocument();
   });
 
   it('should display "--:--" when timeLeft is null', () => {

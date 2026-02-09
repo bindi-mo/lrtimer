@@ -180,7 +180,7 @@ export default function Timer() {
     handleStart,
     handleStop,
     handleModalOk,
-  } = useScheduledTimer(activeHour, activeMinute, activeSecond);
+  } = useScheduledTimer(activeHour, activeMinute, activeSecond, selectedAlarm);
 
   // Start timer when modal is closed; stop when opened
   useEffect(() => {

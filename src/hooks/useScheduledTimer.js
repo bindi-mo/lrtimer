@@ -12,12 +12,12 @@ const NOTIFICATION_THRESHOLDS = {
   PRE_15_TARGET: 900,          // Trigger 15-minute notification when crossing 900s
   PRE_5_TARGET: 300,           // Trigger 5-minute notification when crossing 300s
   COMPLETION: 0,               // Trigger completion notification at 0 seconds
-  ALARM_DURATION: 15,          // Alarm sound duration in seconds
+  ALARM_DURATION: 3,           // Alarm sound duration in seconds (short playback requested)
   AUTO_RESTART_DELAY: 5 * 60,  // Delay before auto-restart in seconds
   ACHIEVEMENT_DISPLAY: 10,     // Duration to display achievement in seconds
 };
 
-export const useScheduledTimer = (targetHour, targetMinute, targetSecond) => {
+export const useScheduledTimer = (targetHour, targetMinute, targetSecond, alarmType = 'phone') => {
   const [scheduledTimeLeft, setScheduledTimeLeft] = useState(0);
   const [isScheduledRunning, setIsScheduledRunning] = useState(false);
   const [isAchieved, setIsAchieved] = useState(false);
@@ -40,6 +40,7 @@ export const useScheduledTimer = (targetHour, targetMinute, targetSecond) => {
   });
   const animationTimeoutRef = useRef(null);
   const alarmIntervalRef = useRef(null);
+  const alarmStopTimeoutRef = useRef(null);
   const autoRestartTimeoutRef = useRef(null);
   const autoRestartStartTimeoutRef = useRef(null);
 
@@ -65,19 +66,45 @@ export const useScheduledTimer = (targetHour, targetMinute, targetSecond) => {
       clearInterval(alarmIntervalRef.current);
       alarmIntervalRef.current = null;
     }
+    if (alarmStopTimeoutRef.current) {
+      clearTimeout(alarmStopTimeoutRef.current);
+      alarmStopTimeoutRef.current = null;
+    }
   };
 
-  const startAlarmForDuration = useCallback((durationSeconds, alarmType) => {
+  const startAlarmForDuration = useCallback((durationSeconds, alarmTypeToUse, message) => {
     stopAlarm();
 
-    playNotification('15 minutes remaining', alarmType, true);
+    if (message) {
+      playNotification(message, alarmTypeToUse, true);
+    }
 
+    const intervalMs = 900; // spacing between sound plays
+    const startTime = Date.now();
+
+    // play immediately and then at intervals until duration elapses
+    playNotification('', alarmTypeToUse, false);
     alarmIntervalRef.current = setInterval(() => {
-      playNotification('', alarmType, false);
+      if (Date.now() - startTime >= durationSeconds * 1000) {
+        stopAlarm();
+        setShowModal(false);
+        return;
+      }
+      playNotification('', alarmTypeToUse, false);
+    }, intervalMs);
+
+    if (alarmStopTimeoutRef.current) {
+      clearTimeout(alarmStopTimeoutRef.current);
+    }
+    alarmStopTimeoutRef.current = setTimeout(() => {
       stopAlarm();
       setShowModal(false);
-    }, NOTIFICATION_THRESHOLDS.ALARM_DURATION * 1000);
-  }, []);
+      if (alarmStopTimeoutRef.current) {
+        clearTimeout(alarmStopTimeoutRef.current);
+        alarmStopTimeoutRef.current = null;
+      }
+    }, durationSeconds * 1000);
+  }, [playNotification]);
 
   const handleModalOk = () => {
     stopAlarm();
@@ -134,6 +161,9 @@ export const useScheduledTimer = (targetHour, targetMinute, targetSecond) => {
       // すべてのタイマーをクリア
       if (alarmIntervalRef.current) {
         clearInterval(alarmIntervalRef.current);
+      }
+      if (alarmStopTimeoutRef.current) {
+        clearTimeout(alarmStopTimeoutRef.current);
       }
       if (animationTimeoutRef.current) {
         clearTimeout(animationTimeoutRef.current);
@@ -195,8 +225,8 @@ export const useScheduledTimer = (targetHour, targetMinute, targetSecond) => {
         ) {
           notificationRef.current.prev15min = NOTIFICATION_THRESHOLDS.PRE_15_TARGET;
           setShowModal(true);
-          // 'phone' は目立つ音なので15分通知に使用
-          startAlarmForDuration(NOTIFICATION_THRESHOLDS.ALARM_DURATION, 'phone');
+          // 設定されたアラーム音で再生（短時間）
+          startAlarmForDuration(NOTIFICATION_THRESHOLDS.ALARM_DURATION, alarmType, '15分前です');
         }
 
         // 5分前の通知をトリガー
@@ -206,7 +236,7 @@ export const useScheduledTimer = (targetHour, targetMinute, targetSecond) => {
         ) {
           notificationRef.current.prev5min = NOTIFICATION_THRESHOLDS.PRE_5_TARGET;
           setShowModal(true);
-          startAlarmForDuration(NOTIFICATION_THRESHOLDS.ALARM_DURATION, 'phone');
+          startAlarmForDuration(NOTIFICATION_THRESHOLDS.ALARM_DURATION, alarmType, '5分前です');
         }
 
         // 目標時刻に到達したらisAchievedをtrueにする（横切り検出でのみトリガー）
