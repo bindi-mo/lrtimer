@@ -68,10 +68,9 @@ describe('Timer component - edit mode based on localStorage', () => {
     const editBtn = screen.getByRole('button', { name: /時刻を?設定/ });
     act(() => { fireEvent.click(editBtn); });
 
-    // Wait for the edit controls to appear and increment hour
-    const incButtons = await screen.findAllByLabelText('時を増加');
-    const incHour = incButtons[0];
-    act(() => { fireEvent.click(incHour); });
+    // Wait for the edit controls to appear and change hour to 09
+    const hourSelect = await screen.findByLabelText('時間');
+    act(() => { fireEvent.change(hourSelect, { target: { value: '09' } }); });
 
     // Close modal
     const closeBtn = await screen.findByRole('button', { name: /閉じる/ });

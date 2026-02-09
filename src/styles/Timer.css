@@ -266,7 +266,7 @@ html[data-theme='light'] {
   align-items: center;
   gap: var(--spacing-xs);
   background: var(--background-overlay);
-  padding: var(--spacing-md) var(--spacing-lg);
+  padding: 8px;
   border-radius: var(--border-radius);
   backdrop-filter: blur(10px);
   border: 1px solid var(--border-color);
@@ -333,12 +333,81 @@ html[data-theme='light'] {
 .time-separator {
   color: var(--primary-color);
   font-weight: bold;
-  font-size: 1.5rem;
-  margin: 0 2px;
+  font-size: 2rem; /* increased */
+  margin: 0 6px;
   display: flex;
   align-items: center;
   justify-content: center;
   line-height: 1;
+}
+
+/* Larger select inputs for time (hours/minutes/seconds) */
+.time-select {
+  font-size: 1.6rem; /* compact size (recommended) */
+  font-weight: 700;
+  color: var(--primary-color);
+  background: transparent;
+  border: none;
+  appearance: none;
+  padding: 2px 8px 2px 5px; /* ensure right padding for arrow */
+  min-width: 56px;
+  text-align: center;
+  text-align-last: center;
+  font-family: Michroma, 'Courier New', monospace;
+}
+
+/* Ensure selects align nicely inside the input box */
+.time-input-group {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* wrapper to display custom arrow icon (SVG) */
+.select-wrapper {
+  position: relative;
+  display: inline-block;
+}
+
+/* Mask native arrow for alarm-select only by overlaying a small block, then render our custom SVG on top */
+.alarm-selector .select-wrapper::before {
+  content: "";
+  position: absolute;
+  right: 8px;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 22px;
+  height: calc(100% - 4px);
+
+  /* keep the mask transparent but still reserve the area to hide native UI */
+  background: transparent;
+  border-left: none;
+  border-radius: 4px;
+  pointer-events: none;
+  z-index: 1; /* place mask below custom arrow */
+}
+
+/* Use modal background for alarm-selects inside modal */
+.timer-edit-modal .alarm-selector .select-wrapper::before {
+  background: var(--background-modal-content);
+}
+
+/* Custom arrow for alarm-select */
+.alarm-selector .select-wrapper::after {
+  content: "";
+  position: absolute;
+  right: 12px; /* position inside the masked area */
+  top: 50%;
+  transform: translateY(-50%);
+  width: 14px;
+  height: 8px;
+
+  /* use a fixed stroke color so arrow remains visible even if background is transparent */
+  background-image: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 14 8"><path d="M1 1l6 6 6-6" fill="none" stroke="%2364b5f6" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>');
+  background-repeat: no-repeat;
+  background-size: 14px 8px;
+  pointer-events: none;
+  z-index: 2; /* make sure custom arrow sits above the mask */
 }
 
 .timer-controls {
@@ -577,15 +646,26 @@ html[data-theme='dark'] .schedule-btn.disabled {
   justify-content: center;
 }
 
+/* ensure the wrapper inherits the accent color so SVG using currentColor is visible */
+.alarm-selector .select-wrapper {
+  position: relative; /* already set globally, but ensure specificity */
+  color: var(--primary-color);
+}
+
 .alarm-select {
-  padding: var(--spacing-xs) var(--spacing-sm);
-  background: var(--background-overlay);
+  /* Smaller, compact visual matching the time inputs but without native arrow */
+  font-size: var(--font-size-small);
+  font-weight: 600;
+  color: var(--primary-color);
+  background: transparent;
   border: 1px solid var(--border-primary);
   border-radius: var(--border-radius-xs);
-  color: var(--text-color);
-  font-size: var(--font-size-small);
-  cursor: pointer;
-  transition: all var(--transition-normal);
+  padding: 4px 28px 4px 8px; /* ensure space for arrow on right */
+  text-align: center;
+  text-align-last: center;
+  appearance: none; /* remove native arrow where supported */
+
+  /* display set to default (visible) */
 }
 
 .alarm-select:hover:not(:disabled) {
@@ -847,15 +927,19 @@ html[data-theme='dark'] .alarm-select option {
   z-index: 999;
   background: var(--background-modal-content);
   border-radius: var(--border-radius);
-  padding: var(--spacing-lg);
-  width: 350px;
-  height: 350px;
+
+  /* slightly reduced padding and shrink to content */
+  padding: var(--spacing-md);
+  width: fit-content; /* shrink to content */
+  min-width: 240px; /* prevent becoming too narrow */
+  max-width: 90%;
+  height: auto; /* allow content height to determine size */
   overflow-y: auto;
   box-shadow: var(--shadow-modal);
   border: 1px solid var(--border-color);
   display: flex;
   flex-direction: column;
-  gap: var(--spacing-lg);
+  gap: var(--spacing-md);
 }
 
 @media (width <= 600px) {

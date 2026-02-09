@@ -6,7 +6,6 @@ import { playAlarmPreview } from '../utils/alarmSounds';
 import { calculateTargetTimeInSeconds } from '../utils/timeUtils';
 
 import CircularProgress from './CircularProgress';
-import { MinusIcon, PlusIcon } from './TimeAdjustIcon';
 
 // Load target time from localStorage
 const loadTargetTime = () => {
@@ -336,108 +335,86 @@ export default function Timer() {
                 />
                 <div className="timer-edit-modal">
                   <div className="alarm-selector">
-                    <select
-                      id="alarm-select"
-                      value={selectedAlarm}
-                      onChange={(e) => {
-                        setSelectedAlarm(e.target.value);
-                        // Stop existing preview
-                        if (currentPreviewRef.current) {
-                          currentPreviewRef.current.stop();
-                        }
-                        // Start new preview
-                        const preview = playAlarmPreview(e.target.value);
-                        currentPreviewRef.current = preview;
-                      }}
-                      disabled={isScheduledRunning}
-                      className="alarm-select"
-                      aria-label="アラーム音の種類を選択"
-                    >
-                      <option value="beep">ビープ音</option>
-                      <option value="low">低いビープ音</option>
-                      <option value="phone">電話音</option>
-                      <option value="pulse">パルス音</option>
-                      <option value="ascending">上昇音</option>
-                    </select>
+                    <div className="select-wrapper">
+                      <select
+                        id="alarm-select"
+                        value={selectedAlarm}
+                        onChange={(e) => {
+                          setSelectedAlarm(e.target.value);
+                          // Stop existing preview
+                          if (currentPreviewRef.current) {
+                            currentPreviewRef.current.stop();
+                          }
+                          // Start new preview
+                          const preview = playAlarmPreview(e.target.value);
+                          currentPreviewRef.current = preview;
+                        }}
+                        disabled={isScheduledRunning}
+                        className="alarm-select"
+                        aria-label="アラーム音の種類を選択"
+                      >
+                        <option value="beep">ビープ音</option>
+                        <option value="low">低いビープ音</option>
+                        <option value="phone">電話音</option>
+                        <option value="pulse">パルス音</option>
+                        <option value="ascending">上昇音</option>
+                      </select>
+                    </div>
                   </div>
 
                   <div className="timer-input">
-                  {/* Improved accessibility - added aria-labels and keyboard navigation support */}
-                  <div className="time-input-group">
-                    <button
-                      className="time-adjust-btn"
-                      onClick={() => incrementTime('hour')}
-                      aria-label="時を増加"
-                    >
-                      <PlusIcon />
-                    </button>
-                    <div
-                      className="time-display"
-                      role="textbox"
-                      aria-label="時間"
-                      aria-readonly="true"
-                    >
-                      {targetHour}
+                    {/* Improved accessibility - select-based inputs for easier keyboard + mobile use */}
+                    <div className="time-input-group">
+                      <div className="select-wrapper">
+                        <select
+                          id="hour-select"
+                          className="time-select"
+                          aria-label="時間"
+                          value={targetHour}
+                          onChange={(e) => setTargetHour(String(e.target.value).padStart(2, '0'))}
+                        >
+                          {Array.from({ length: 24 }).map((_, i) => {
+                            const v = String(i).padStart(2, '0');
+                            return <option key={v} value={v}>{v}</option>;
+                          })}
+                        </select>
+                      </div>
                     </div>
-                    <button
-                      className="time-adjust-btn"
-                      onClick={() => decrementTime('hour')}
-                      aria-label="時を減少"
-                    >
-                      <MinusIcon />
-                    </button>
-                  </div>
-                  <span className="time-separator" aria-hidden="true">:</span>
-                  <div className="time-input-group">
-                    <button
-                      className="time-adjust-btn"
-                      onClick={() => incrementTime('minute')}
-                      aria-label="分を増加"
-                    >
-                      <PlusIcon />
-                    </button>
-                    <div
-                      className="time-display"
-                      role="textbox"
-                      aria-label="分"
-                      aria-readonly="true"
-                    >
-                      {targetMinute}
+                    <span className="time-separator" aria-hidden="true">:</span>
+                    <div className="time-input-group">
+                      <div className="select-wrapper">
+                        <select
+                          id="minute-select"
+                          className="time-select"
+                          aria-label="分"
+                          value={targetMinute}
+                          onChange={(e) => setTargetMinute(String(e.target.value).padStart(2, '0'))}
+                        >
+                          {Array.from({ length: 60 }).map((_, i) => {
+                            const v = String(i).padStart(2, '0');
+                            return <option key={v} value={v}>{v}</option>;
+                          })}
+                        </select>
+                      </div>
                     </div>
-                    <button
-                      className="time-adjust-btn"
-                      onClick={() => decrementTime('minute')}
-                      aria-label="分を減少"
-                    >
-                      <MinusIcon />
-                    </button>
-                  </div>
-                  <span className="time-separator" aria-hidden="true">:</span>
-                  <div className="time-input-group">
-                    <button
-                      className="time-adjust-btn"
-                      onClick={() => incrementTime('second')}
-                      aria-label="秒を増加"
-                    >
-                      <PlusIcon />
-                    </button>
-                    <div
-                      className="time-display"
-                      role="textbox"
-                      aria-label="秒"
-                      aria-readonly="true"
-                    >
-                      {targetSecond}
+                    <span className="time-separator" aria-hidden="true">:</span>
+                    <div className="time-input-group">
+                      <div className="select-wrapper">
+                        <select
+                          id="second-select"
+                          className="time-select"
+                          aria-label="秒"
+                          value={targetSecond}
+                          onChange={(e) => setTargetSecond(String(e.target.value).padStart(2, '0'))}
+                        >
+                          {Array.from({ length: 60 }).map((_, i) => {
+                            const v = String(i).padStart(2, '0');
+                            return <option key={v} value={v}>{v}</option>;
+                          })}
+                        </select>
+                      </div>
                     </div>
-                    <button
-                      className="time-adjust-btn"
-                      onClick={() => decrementTime('second')}
-                      aria-label="秒を減少"
-                    >
-                      <MinusIcon />
-                    </button>
                   </div>
-                </div>
                 <div className="timer-input-actions">
                   <button
                     onClick={() => setIsEditMode(false)}
@@ -492,108 +469,86 @@ export default function Timer() {
                 <div className="timer-edit-modal">
                   <div className="alarm-selector">
                     <label htmlFor="alarm-select">アラーム音:</label>
-                    <select
-                      id="alarm-select"
-                      value={selectedAlarm}
-                      onChange={(e) => {
-                        setSelectedAlarm(e.target.value);
-                        // Stop existing preview
-                        if (currentPreviewRef.current) {
-                          currentPreviewRef.current.stop();
-                        }
-                        // Start new preview
-                        const preview = playAlarmPreview(e.target.value);
-                        currentPreviewRef.current = preview;
-                      }}
-                      disabled={isScheduledRunning}
-                      className="alarm-select"
-                      aria-label="アラーム音の種類を選択"
-                    >
-                      <option value="beep">ビープ音</option>
-                      <option value="low">低いビープ音</option>
-                      <option value="phone">電話音</option>
-                      <option value="pulse">パルス音</option>
-                      <option value="ascending">上昇音</option>
-                    </select>
+                    <div className="select-wrapper">
+                      <select
+                        id="alarm-select"
+                        value={selectedAlarm}
+                        onChange={(e) => {
+                          setSelectedAlarm(e.target.value);
+                          // Stop existing preview
+                          if (currentPreviewRef.current) {
+                            currentPreviewRef.current.stop();
+                          }
+                          // Start new preview
+                          const preview = playAlarmPreview(e.target.value);
+                          currentPreviewRef.current = preview;
+                        }}
+                        disabled={isScheduledRunning}
+                        className="alarm-select"
+                        aria-label="アラーム音の種類を選択"
+                      >
+                        <option value="beep">ビープ音</option>
+                        <option value="low">低いビープ音</option>
+                        <option value="phone">電話音</option>
+                        <option value="pulse">パルス音</option>
+                        <option value="ascending">上昇音</option>
+                      </select>
+                    </div>
                   </div>
 
                     <div className="timer-input">
-                    {/* Improved accessibility - added aria-labels and keyboard navigation support */}
-                    <div className="time-input-group">
-                      <button
-                        className="time-adjust-btn"
-                        onClick={() => incrementTime('hour')}
-                        aria-label="時を増加"
-                      >
-                        <PlusIcon />
-                      </button>
-                      <div
-                        className="time-display"
-                        role="textbox"
-                        aria-label="時間"
-                        aria-readonly="true"
-                      >
-                        {targetHour}
+                      {/* Improved accessibility - select-based inputs for easier keyboard + mobile use */}
+                      <div className="time-input-group">
+                        <div className="select-wrapper">
+                          <select
+                            id="hour-select-running"
+                            className="time-select"
+                            aria-label="時間"
+                            value={targetHour}
+                            onChange={(e) => setTargetHour(String(e.target.value).padStart(2, '0'))}
+                          >
+                            {Array.from({ length: 24 }).map((_, i) => {
+                              const v = String(i).padStart(2, '0');
+                              return <option key={v} value={v}>{v}</option>;
+                            })}
+                          </select>
+                        </div>
                       </div>
-                      <button
-                        className="time-adjust-btn"
-                        onClick={() => decrementTime('hour')}
-                        aria-label="時を減少"
-                      >
-                        <MinusIcon />
-                      </button>
-                    </div>
-                    <span className="time-separator" aria-hidden="true">:</span>
-                    <div className="time-input-group">
-                      <button
-                        className="time-adjust-btn"
-                        onClick={() => incrementTime('minute')}
-                        aria-label="分を増加"
-                      >
-                        <PlusIcon />
-                      </button>
-                      <div
-                        className="time-display"
-                        role="textbox"
-                        aria-label="分"
-                        aria-readonly="true"
-                      >
-                        {targetMinute}
+                      <span className="time-separator" aria-hidden="true">:</span>
+                      <div className="time-input-group">
+                        <div className="select-wrapper">
+                          <select
+                            id="minute-select-running"
+                            className="time-select"
+                            aria-label="分"
+                            value={targetMinute}
+                            onChange={(e) => setTargetMinute(String(e.target.value).padStart(2, '0'))}
+                          >
+                            {Array.from({ length: 60 }).map((_, i) => {
+                              const v = String(i).padStart(2, '0');
+                              return <option key={v} value={v}>{v}</option>;
+                            })}
+                          </select>
+                        </div>
                       </div>
-                      <button
-                        className="time-adjust-btn"
-                        onClick={() => decrementTime('minute')}
-                        aria-label="分を減少"
-                      >
-                        <MinusIcon />
-                      </button>
-                    </div>
-                    <span className="time-separator" aria-hidden="true">:</span>
-                    <div className="time-input-group">
-                      <button
-                        className="time-adjust-btn"
-                        onClick={() => incrementTime('second')}
-                        aria-label="秒を増加"
-                      >
-                        <PlusIcon />
-                      </button>
-                      <div
-                        className="time-display"
-                        role="textbox"
-                        aria-label="秒"
-                        aria-readonly="true"
-                      >
-                        {targetSecond}
+                      <span className="time-separator" aria-hidden="true">:</span>
+                      <div className="time-input-group">
+                        <div className="select-wrapper">
+                          <select
+                            id="second-select-running"
+                            className="time-select"
+                            aria-label="秒"
+                            value={targetSecond}
+                            onChange={(e) => setTargetSecond(String(e.target.value).padStart(2, '0'))}
+                          >
+                            {Array.from({ length: 60 }).map((_, i) => {
+                              const v = String(i).padStart(2, '0');
+                              return <option key={v} value={v}>{v}</option>;
+                            })}
+                          </select>
+                        </div>
                       </div>
-                      <button
-                        className="time-adjust-btn"
-                        onClick={() => decrementTime('second')}
-                        aria-label="秒を減少"
-                      >
-                        <MinusIcon />
-                      </button>
                     </div>
-                  </div>
                   <div className="timer-input-actions">
                     <button
                       onClick={() => setIsEditMode(false)}
