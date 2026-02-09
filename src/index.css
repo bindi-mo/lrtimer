@@ -13,8 +13,11 @@
 /* Make all text unselectable globally */
 *,
 *::before,
-*::after { /* Safari */    /* Firefox */     /* IE10+/Edge */
-  user-select: none;         /* Standard */
+*::after {
+  -moz-user-select: none;
+  -webkit-user-select: none;
+  -ms-user-select: none;
+  user-select: none;
 }
 
 html {
