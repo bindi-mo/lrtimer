@@ -22,3 +22,7 @@ dist-ssr
 *.njsproj
 *.sln
 *.sw?
+
+# caverage directory used by coverage tools
+coverage
+.coverage
