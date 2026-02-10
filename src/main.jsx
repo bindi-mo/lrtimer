@@ -5,16 +5,12 @@ import './index.css';
 
 // Service Worker登録 (vite-plugin-pwaが自動生成)
 // 開発環境ではService Workerを無効化（キャッシュの問題を防ぐ）
-if ('serviceWorker' in navigator && import.meta.env.PROD) {
-  navigator.serviceWorker.register('/sw.js').catch((error) => {
-    console.log('Service Worker registration failed:', error);
-  });
-} else if ('serviceWorker' in navigator && !import.meta.env.PROD) {
-  // 開発中に古いService Workerを削除
-  navigator.serviceWorker.getRegistrations().then((registrations) => {
-    registrations.forEach((registration) => {
-      registration.unregister();
-    });
+// 追加: デバッグ時にSWを無効にしたい場合は VITE_DISABLE_SW を true に設定
+if ('serviceWorker' in navigator && !import.meta.env.VITE_DISABLE_SW) {
+  // 常にdebug-sw.jsを登録（デバッグ用）
+  console.log('Registering /debug-sw.js');
+  navigator.serviceWorker.register('/debug-sw.js').catch((error) => {
+    console.log('Debug Service Worker registration failed:', error);
   });
 }
 

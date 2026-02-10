@@ -1,5 +1,6 @@
 import { useEffect } from 'react';
 import './App.css';
+import PushToggle from './components/PushToggle';
 import Timer from './components/Timer';
 import { TimerProvider, useTimerContext } from './contexts/TimerContext.jsx';
 
@@ -28,6 +29,7 @@ function AppContent() {
         >
           {globalSettings.theme === 'dark' ? '☀️' : '🌙'}
         </button>
+        <PushToggle />
       </header>
       <main>
         <Timer />

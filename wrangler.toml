@@ -1,0 +1,17 @@
+name = "lrtimer"
+compatibility_date = "2026-02-10"
+account_id = "57db4b89e1b62ea955a6bdfdfb247e19"
+
+compatibility_flags = ["nodejs_compat"]
+
+# KV namespace binding (create with `wrangler kv:namespace create SUBSCRIPTIONS`)
+[[kv_namespaces]]
+binding = "SUBSCRIPTIONS"
+id = "8f9fdb726e93400b802893c3e3174743"
+
+# Environment variables (VAPID keys) are set in Pages / Workers dashboard or via wrangler secret
+[vars]
+VAPID_PUBLIC_KEY = ""
+VAPID_PRIVATE_KEY = ""
+VAPID_SUBJECT = "mailto:you@example.com"
+BASE_ORIGIN = "https://your-production-domain.example" # used by cron worker fetch to call /api/send

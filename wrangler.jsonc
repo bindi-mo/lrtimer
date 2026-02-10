@@ -1,7 +1,15 @@
 {
-  "name": "lrtimer",
-  "compatibility_date": "2026-02-05",
-  "assets": {
-    "directory": "./dist"
-  }
+	"name": "lrtimer",
+	"compatibility_date": "2026-02-05",
+	"compatibility_flags": ["nodejs_compat"],
+	"assets": {
+		"directory": "./dist"
+	},
+	"kv_namespaces": [
+		{
+			"binding": "SUBSCRIPTIONS",
+			"id": "8f9fdb726e93400b802893c3e3174743",
+			"remote": true
+		}
+	]
 }

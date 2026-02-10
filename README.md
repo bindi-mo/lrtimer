@@ -13,7 +13,8 @@ Lineage Remastered features bosses that spawn at specific, recurring times. LR T
 - 🔔 **Multi-Stage Notifications**: 15-minute, 5-minute, and target time alerts
 - 🔊 **Multiple Alarm Sounds**: Choose from 5 different programmatically generated sounds (beep, low, phone, pulse, ascending)
 - 📢 **Browser Notifications**: Native browser notifications with audio alerts
-- 🌓 **Dark/Light Theme**: Toggle between dark and light themes with persistent storage
+- � **Web Push (PWA)**: Server-side Web Push を使ってアプリが閉じている時でも 15/5 分通知が送れる（実装手順は `docs/PUSH.md` を参照）
+- �🌓 **Dark/Light Theme**: Toggle between dark and light themes with persistent storage
 - 💾 **Settings Persistence**: User preferences saved to localStorage automatically
 - ♿ **Accessibility**: Full ARIA labels and keyboard navigation support
 - ⚡ **Modern Stack**: React 19 with Vite for fast development and hot module replacement
