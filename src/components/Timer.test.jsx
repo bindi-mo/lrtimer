@@ -1,4 +1,4 @@
-import { fireEvent, render, screen } from '@testing-library/react';
+import { fireEvent, render, screen, waitFor } from '@testing-library/react';
 import { act } from 'react-dom/test-utils';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { TimerProvider } from '../contexts/TimerContext';
@@ -115,5 +115,50 @@ describe('Timer component - edit mode based on localStorage', () => {
     const newS2 = calculateTargetTimeInSeconds(String(((9 + 12) % 24)).padStart(2, '0'), '00', '00');
     expect(enabled[String(newS1)]).toBe(true);
     expect(enabled[String(newS2)]).toBe(true);
+  });
+
+  it('ボタン押下で有効/無効がトグルされ、activeSchedule が再評価される', async () => {
+    // 現在時刻を 07:00 に固定 -> ターゲット 08:00 が最も近い
+    const RealDate = Date;
+    const mockNow = new RealDate(2026, 1, 14, 7, 0, 0);
+    vi.stubGlobal('Date', class extends Date {
+      constructor(...args) {
+        if (args.length === 0) return new RealDate(mockNow);
+        return new RealDate(...args);
+      }
+      static now() { return mockNow.getTime(); }
+    });
+
+    localStorage.setItem('lrtimer_target_time', JSON.stringify({ hour: '08', minute: '00', second: '00' }));
+
+    render(
+      <TimerProvider>
+        <Timer />
+      </TimerProvider>
+    );
+
+    // ボタン要素（08:00 と 20:00）を取得
+    const btn08 = screen.getByRole('button', { name: /08:00:00 の有効\/無効切替/ });
+    const btn20 = screen.getByRole('button', { name: /20:00:00 の有効\/無効切替/ });
+
+    // 初期は 08:00 がアクティブ
+    await waitFor(() => expect(btn08.getAttribute('aria-current') || btn08.classList.contains('active')).toBeTruthy());
+
+    // 08:00 を無効化（トグル） -> aria-pressed が false になり、activeSchedule は 20:00 に切替
+    act(() => { fireEvent.click(btn08); });
+    await waitFor(() => expect(btn08.getAttribute('aria-pressed')).toBe('false'));
+    await waitFor(() => expect(screen.getByRole('button', { name: /20:00:00 の有効\/無効切替/ }).getAttribute('aria-current') || screen.getByRole('button', { name: /20:00:00 の有効\/無効切替/ }).classList.contains('active')).toBeTruthy());
+
+    // localStorage の enabled_map が更新されている
+    const s08 = calculateTargetTimeInSeconds('08', '00', '00');
+    const enabled = JSON.parse(localStorage.getItem('lrtimer_enabled_map'));
+    expect(enabled[String(s08)]).toBe(false);
+
+    // 08:00 を再度クリック（有効化）して元に戻る
+    act(() => { fireEvent.click(btn08); });
+    await waitFor(() => expect(btn08.getAttribute('aria-pressed')).toBe('true'));
+    await waitFor(() => expect(btn08.getAttribute('aria-current') || btn08.classList.contains('active')).toBeTruthy());
+
+    vi.restoreAllMocks();
   });
 });
