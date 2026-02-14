@@ -119,8 +119,6 @@ export default function Timer() {
 
   const [enabledMap, setEnabledMap] = useState(() => loadEnabledMap());
 
-
-
   // Save enabledMap to localStorage
   useEffect(() => {
     try {
@@ -148,6 +146,7 @@ export default function Timer() {
     });
   }, [schedules]);
 
+  // Toggle enabled state (keeps existing behavior for toggling)
   const toggleEnabled = (seconds) => {
     const k = String(seconds);
     setEnabledMap((prev) => {
@@ -161,6 +160,13 @@ export default function Timer() {
       return next;
     });
   };
+
+  // Toggle enabled state for a schedule (クリックで有効/無効を切替)
+  // onClick handlers use toggleEnabled to change enabledMap; activeSchedule is
+  // re-evaluated from enabledMap/schedules automatically.
+
+
+
 
   // From enabled schedules, select the one closest to the current time (next occurrence within 24 hours)
   // Returns null if all are disabled
@@ -333,6 +339,7 @@ export default function Timer() {
                       className={`schedule-btn ${enabled ? 'enabled' : 'disabled'} ${activeSchedule && s.seconds === activeSchedule.seconds ? 'active' : ''}`}
                       onClick={() => toggleEnabled(s.seconds)}
                       aria-pressed={enabled}
+                      aria-current={activeSchedule && s.seconds === activeSchedule.seconds ? 'true' : undefined}
                       aria-label={`${s.first} の有効/無効切替`}
                     >
                       <span className="schedule-text">{s.first}</span>
@@ -467,6 +474,7 @@ export default function Timer() {
                     className={`schedule-btn ${enabled ? 'enabled' : 'disabled'}`}
                     onClick={() => toggleEnabled(s.seconds)}
                     aria-pressed={enabled}
+                    aria-current={activeSchedule && s.seconds === activeSchedule.seconds ? 'true' : undefined}
                     aria-label={`${s.first} の有効/無効切替`}
                   >
                     <span className="schedule-text">{s.first}</span>
