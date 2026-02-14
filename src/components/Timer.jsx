@@ -8,11 +8,36 @@ import { calculateTargetTimeInSeconds } from '../utils/timeUtils';
 import CircularProgress from './CircularProgress';
 
 // Load target time from localStorage
+// When a stored hour is found, prefer the occurrence (hour or hour+12) that is closer to now
 const loadTargetTime = () => {
   try {
     const stored = localStorage.getItem('lrtimer_target_time');
     if (stored) {
       const parsed = JSON.parse(stored);
+
+      // compute the two 12-hour-separated candidate times (seconds from 00:00)
+      const { hour, minute, second } = parsed;
+      const t1Sec = calculateTargetTimeInSeconds(hour, minute, second);
+      const t2Hour = String(((parseInt(hour, 10) + 12) % 24)).padStart(2, '0');
+      const t2Sec = calculateTargetTimeInSeconds(t2Hour, minute, second);
+
+      // distance (seconds) until next occurrence within 24h
+      const now = new Date();
+      const nowSec = now.getHours() * 3600 + now.getMinutes() * 60 + now.getSeconds();
+      const untilNext = (sec) => {
+        let d = sec - nowSec;
+        if (d <= 0) d += 24 * 3600;
+        return d;
+      };
+
+      const d1 = untilNext(t1Sec);
+      const d2 = untilNext(t2Sec);
+
+      // pick the candidate whose next occurrence is sooner
+      if (d2 < d1) {
+        return { hour: t2Hour, minute, second, fromStorage: true };
+      }
+
       return { ...parsed, fromStorage: true };
     }
   } catch (error) {
