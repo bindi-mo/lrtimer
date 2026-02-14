@@ -4,7 +4,6 @@ import { getPushSubscription, subscribeToPush, unsubscribeFromPush } from '../ut
 export default function PushToggle() {
   const [subscribed, setSubscribed] = useState(false);
   const [loading, setLoading] = useState(false);
-  const vapidKey = import.meta.env.VITE_VAPID_PUBLIC_KEY;
 
   useEffect(() => {
     let mounted = true;
@@ -14,8 +13,13 @@ export default function PushToggle() {
     return () => { mounted = false; };
   }, []);
 
+  const getVAPIDKey = () => {
+    return window.__VAPID_KEY__ ?? import.meta.env.VITE_VAPID_PUBLIC_KEY;
+  };
+
   const handleSubscribe = async () => {
     console.log('handleSubscribe called');
+    const vapidKey = getVAPIDKey();
     if (!vapidKey) {
       console.error('VAPID public key is not configured');
       alert('VAPID public key is not configured (set VITE_VAPID_PUBLIC_KEY)');

@@ -4,41 +4,20 @@ export async function onRequest({ request, env }) {
   }
 
   try {
-    // Get subscriptions
-    let subscriptions = [];
-    if (env.SUBSCRIPTIONS) {
-      // KV
-      const keys = await env.SUBSCRIPTIONS.list();
-      for (const key of keys.keys) {
-        const value = await env.SUBSCRIPTIONS.get(key.name);
-        if (value) subscriptions.push(JSON.parse(value));
-      }
-    } else {
-      // File
-      const { readFile } = await import('fs/promises');
-      try {
-        const data = await readFile('./data/subscriptions.json', 'utf8');
-        subscriptions = JSON.parse(data);
-      } catch (e) {
-        // ignore
-      }
-    }
-
-    if (subscriptions.length === 0) {
+    const { subscription, payload } = await request.json();
+    if (!subscription) {
       return new Response('Missing subscription', { status: 400 });
     }
 
-    // Send push to first subscription for testing
-    const sub = subscriptions[0];
     const vapidKeys = {
       publicKey: env.VAPID_PUBLIC_KEY,
       privateKey: env.VAPID_PRIVATE_KEY,
     };
 
     const webpush = await import('web-push');
-    webpush.setVapidDetails('mailto:test@example.com', vapidKeys.publicKey, vapidKeys.privateKey);
+    webpush.setVapidDetails(env.VAPID_SUBJECT || 'mailto:test@example.com', vapidKeys.publicKey, vapidKeys.privateKey);
 
-    await webpush.sendNotification(sub.subscription, 'Test notification');
+    await webpush.sendNotification(subscription, JSON.stringify(payload));
 
     return new Response('Sent', { status: 200 });
   } catch (error) {

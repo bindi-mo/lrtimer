@@ -15,3 +15,6 @@ VAPID_PUBLIC_KEY = ""
 VAPID_PRIVATE_KEY = ""
 VAPID_SUBJECT = "mailto:you@example.com"
 BASE_ORIGIN = "https://your-production-domain.example" # used by cron worker fetch to call /api/send
+
+[pages]
+functions = "functions"
