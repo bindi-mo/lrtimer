@@ -37,7 +37,7 @@ export const useScheduledTimer = (targetHour, targetMinute, targetSecond, alarmT
   const autoRestartTimeoutRef = useRef(null);
   const autoRestartStartTimeoutRef = useRef(null);
 
-  const playNotification = (message = 'Complete', alarmType = 'beep', showBrowserNotification = true) => {
+  const playNotification = useCallback((message = 'Complete', alarmType = 'beep', showBrowserNotification = true) => {
     // Send browser notification only if enabled and permission is granted
     if (showBrowserNotification && 'Notification' in window && Notification.permission === 'granted') {
       try {
@@ -52,7 +52,7 @@ export const useScheduledTimer = (targetHour, targetMinute, targetSecond, alarmT
 
     // AudioContext is managed in alarmSounds.js, just play the sound
     playAlarmSound(null, alarmType);
-  };
+  }, []);
 
   const stopAlarm = () => {
     if (alarmIntervalRef.current) {
@@ -144,20 +144,25 @@ export const useScheduledTimer = (targetHour, targetMinute, targetSecond, alarmT
   useEffect(() => {
     return () => {
       // すべてのタイマーをクリア
-      if (alarmIntervalRef.current) {
-        clearInterval(alarmIntervalRef.current);
+      const alarmInterval = alarmIntervalRef.current;
+      if (alarmInterval) {
+        clearInterval(alarmInterval);
       }
-      if (alarmStopTimeoutRef.current) {
-        clearTimeout(alarmStopTimeoutRef.current);
+      const alarmStopTimeout = alarmStopTimeoutRef.current;
+      if (alarmStopTimeout) {
+        clearTimeout(alarmStopTimeout);
       }
-      if (animationTimeoutRef.current) {
-        clearTimeout(animationTimeoutRef.current);
+      const animationTimeout = animationTimeoutRef.current;
+      if (animationTimeout) {
+        clearTimeout(animationTimeout);
       }
-      if (autoRestartTimeoutRef.current) {
-        clearTimeout(autoRestartTimeoutRef.current);
+      const autoRestartTimeout = autoRestartTimeoutRef.current;
+      if (autoRestartTimeout) {
+        clearTimeout(autoRestartTimeout);
       }
-      if (autoRestartStartTimeoutRef.current) {
-        clearTimeout(autoRestartStartTimeoutRef.current);
+      const autoRestartStartTimeout = autoRestartStartTimeoutRef.current;
+      if (autoRestartStartTimeout) {
+        clearTimeout(autoRestartStartTimeout);
       }
     };
   }, []);
@@ -244,7 +249,7 @@ export const useScheduledTimer = (targetHour, targetMinute, targetSecond, alarmT
     update();
     const interval = setInterval(update, 1000);
     return () => clearInterval(interval);
-  }, [targetHour, targetMinute, targetSecond, isAchieved, startAlarmForDuration]);
+  }, [targetHour, targetMinute, targetSecond, isAchieved, startAlarmForDuration, alarmType]);
 
   return {
     scheduledTimeLeft,

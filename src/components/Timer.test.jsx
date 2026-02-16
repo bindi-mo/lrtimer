@@ -139,7 +139,6 @@ describe('Timer component - edit mode based on localStorage', () => {
 
     // ボタン要素（08:00 と 20:00）を取得
     const btn08 = screen.getByRole('button', { name: /08:00:00 の有効\/無効切替/ });
-    const btn20 = screen.getByRole('button', { name: /20:00:00 の有効\/無効切替/ });
 
     // 初期は 08:00 がアクティブ
     await waitFor(() => expect(btn08.getAttribute('aria-current') || btn08.classList.contains('active')).toBeTruthy());

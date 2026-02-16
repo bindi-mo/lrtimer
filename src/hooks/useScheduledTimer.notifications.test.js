@@ -53,7 +53,7 @@ describe('useScheduledTimer notifications', () => {
 
     const playSpy = vi.spyOn(alarmSounds, 'playAlarmSound').mockImplementation(() => {});
 
-    const { result } = renderHook(() => useScheduledTimer(targetHour, targetMinute, targetSecond, 'phone'));
+    renderHook(() => useScheduledTimer(targetHour, targetMinute, targetSecond, 'phone'));
 
     // 閾値を越えて通知が出る（再生は短時間繰り返される）
     act(() => { vi.advanceTimersByTime(3000); });
