@@ -172,6 +172,9 @@ Potential additions for other game timers:
 - State management uses React Context for global settings and refs in custom hooks for notification tracking
 - All sounds are generated programmatically for consistency and to reduce bundle size
 
+## ICON
+- https://www.svgrepo.com/svg/441919/cog
+
 ## License
 
 This project is open source and available under the MIT License.

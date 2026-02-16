@@ -14,6 +14,7 @@
   --success-hover: #45a049;
   --text-color: #e0e0e0;
   --text-secondary: rgb(224 224 224 / 70%);
+  --cog-icon-color: #444;
 
   /* Backgrounds */
   --background-overlay: rgb(255 255 255 / 5%);
@@ -86,6 +87,7 @@ html[data-theme='light'] {
   --success-hover: #15803d;
   --text-color: #1f2937;
   --text-secondary: rgb(31 41 55 / 70%);
+  --cog-icon-color: #ccc;
   --schedule-disabled: rgb(31 41 55 / 75%);
   --background-overlay: rgb(0 0 0 / 5%);
   --background-glass: rgb(0 0 0 / 5%);
@@ -258,6 +260,38 @@ html[data-theme='light'] {
 
 .progress-text.countdown{
   font-size: var(--font-size-countdown);
+}
+
+.progress-cog-icon {
+  position: absolute;
+  bottom: 50px;
+  left: 50%;
+  transform: translateX(-50%);
+  background: none;
+  border: none;
+  color: var(--cog-icon-color);
+  cursor: pointer;
+  padding: 4px;
+  border-radius: 50%;
+  transition: background-color 0.2s;
+}
+
+.progress-cog-icon:hover {
+  background: rgba(255, 255, 255, 0.1);
+}
+
+/* Tablet styles */
+@media (width <= 768px) {
+  .progress-cog-icon {
+    bottom: 35px;
+  }
+}
+
+/* Mobile styles */
+@media (width <= 600px) {
+  .progress-cog-icon {
+    bottom: 25px;
+  }
 }
 
 .timer-input {
@@ -474,6 +508,13 @@ html[data-theme='light'] {
   justify-content: center;
   align-items: center;
   width: 100%;
+}
+
+.circular-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--spacing-sm);
 }
 
 .theme-toggle-mobile {

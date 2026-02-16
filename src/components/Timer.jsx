@@ -117,7 +117,17 @@ export default function Timer() {
     return {};
   };
 
-  const [enabledMap, setEnabledMap] = useState(() => loadEnabledMap());
+  const [enabledMap, setEnabledMap] = useState(() => {
+    const loaded = loadEnabledMap();
+    const next = { ...loaded };
+    schedules.forEach((s) => {
+      const k = String(s.seconds);
+      if (!(k in next)) {
+        next[k] = true;
+      }
+    });
+    return next;
+  });
 
   // Save enabledMap to localStorage
   useEffect(() => {
@@ -127,24 +137,6 @@ export default function Timer() {
       console.error('Failed to save enabled map:', e);
     }
   }, [enabledMap]);
-
-  // When a new time is set, ensure schedules (by seconds key) exist in enabledMap.
-  // If a schedule key is missing, add it with default true so the countdown can start (otherwise all-disabled state prevents starting).
-  useEffect(() => {
-    setEnabledMap((prev) => {
-      const cur = prev || {};
-      let changed = false;
-      const next = { ...cur };
-      schedules.forEach((s) => {
-        const k = String(s.seconds);
-        if (!(k in next)) {
-          next[k] = true;
-          changed = true;
-        }
-      });
-      return changed ? next : cur;
-    });
-  }, [schedules]);
 
   // Toggle enabled state (keeps existing behavior for toggling)
   const toggleEnabled = (seconds) => {
@@ -244,36 +236,19 @@ export default function Timer() {
 
   // timeLeft is driven by visibleTimeLeft to ensure the circle updates smoothly
   const timeLeft = visibleTimeLeft;
-  const incrementTime = useCallback((type) => {
-    if (type === 'hour') {
-      const newVal = (parseInt(targetHour) + 1) % 24;
-      setTargetHour(String(newVal).padStart(2, '0'));
-    } else if (type === 'minute') {
-      const newVal = (parseInt(targetMinute) + 1) % 60;
-      setTargetMinute(String(newVal).padStart(2, '0'));
-    } else if (type === 'second') {
-      const newVal = (parseInt(targetSecond) + 1) % 60;
-      setTargetSecond(String(newVal).padStart(2, '0'));
-    }
-  }, [targetHour, targetMinute, targetSecond]);
-
-  const decrementTime = useCallback((type) => {
-    if (type === 'hour') {
-      const newVal = (parseInt(targetHour) - 1 + 24) % 24;
-      setTargetHour(String(newVal).padStart(2, '0'));
-    } else if (type === 'minute') {
-      const newVal = (parseInt(targetMinute) - 1 + 60) % 60;
-      setTargetMinute(String(newVal).padStart(2, '0'));
-    } else if (type === 'second') {
-      const newVal = (parseInt(targetSecond) - 1 + 60) % 60;
-      setTargetSecond(String(newVal).padStart(2, '0'));
-    }
-  }, [targetHour, targetMinute, targetSecond]);
 
   const toggleTheme = () => {
     const newTheme = globalSettings.theme === 'dark' ? 'light' : 'dark';
     updateSettings({ theme: newTheme });
   };
+
+  // Gear icon size based on screen width
+  const gearIconSize = useMemo(() => {
+    if (typeof window !== 'undefined') {
+      return window.innerWidth < 600 ? 36 : 50;
+    }
+    return 50; // default for SSR
+  }, []);
 
   return (
     <div className="timer-container">
@@ -284,13 +259,17 @@ export default function Timer() {
 
       <div className="timer-mode">
         <div className="timer-header">
-          <CircularProgress
-            timeLeft={timeLeft}
-            totalTime={15 * 60}
-            isCountdown={false}
-            isAchieved={isAchieved}
-            isStarting={timeLeft === null}
-          />
+          <div className="circular-container">
+            <CircularProgress
+              timeLeft={timeLeft}
+              totalTime={15 * 60}
+              isCountdown={false}
+              isAchieved={isAchieved}
+              isStarting={timeLeft === null}
+              onClick={() => setIsEditMode(true)}
+              gearIconSize={gearIconSize}
+            />
+          </div>
           <button
             type="button"
             onClick={toggleTheme}
@@ -319,15 +298,6 @@ export default function Timer() {
               </button>
             );
           })}
-          <div className="timer-display-actions">
-            <button
-              onClick={() => setIsEditMode(true)}
-              className="btn btn-edit"
-              aria-label="時刻を設定"
-            >
-              時刻設定
-            </button>
-          </div>
         </div>
 
         {isEditMode && (

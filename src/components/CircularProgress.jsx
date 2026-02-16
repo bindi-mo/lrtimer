@@ -1,5 +1,6 @@
 
 import { formatTime } from '../utils/timeUtils';
+import { GearIcon } from './TimeAdjustIcon';
 
 const CircularProgress = ({
   timeLeft,
@@ -7,7 +8,9 @@ const CircularProgress = ({
   isCountdown = false,
   isRunning = false,
   isAchieved = false,
-  isStarting = false
+  isStarting = false,
+  onClick,
+  gearIconSize = 50
 }) => {
   const radius = 90;
   const circumference = 2 * Math.PI * radius;
@@ -92,6 +95,15 @@ const CircularProgress = ({
       <div className={`progress-text ${isCountdownDisplay ? 'countdown' : ''}`}>
         {displayElement}
       </div>
+      {onClick && (
+        <button
+          className="progress-cog-icon"
+          onClick={onClick}
+          aria-label="時刻を設定"
+        >
+          <GearIcon size={gearIconSize} />
+        </button>
+      )}
     </div>
   );
 };
