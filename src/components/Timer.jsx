@@ -204,40 +204,18 @@ export default function Timer() {
 
   // Use custom hook (pass active schedule)
   const {
-    isScheduledRunning,
     isAchieved,
     showModal,
-    handleStart,
-    handleStop,
     handleModalOk,
   } = useScheduledTimer(activeHour, activeMinute, activeSecond, selectedAlarm);
 
-  // Start timer when modal is closed; stop when opened
+  // Stop preview sound when edit modal closes
   useEffect(() => {
-    if (isEditMode) {
-      // Stop timer when edit modal opens
-      if (isScheduledRunning) {
-        handleStop();
-      }
-    } else {
-      // Start timer when edit modal closes (only if an active schedule exists)
-      if (!isScheduledRunning && activeSchedule) {
-        handleStart();
-      }
-      // Stop preview sound
-      if (currentPreviewRef.current) {
-        currentPreviewRef.current.stop();
-        currentPreviewRef.current = null;
-      }
+    if (!isEditMode && currentPreviewRef.current) {
+      currentPreviewRef.current.stop();
+      currentPreviewRef.current = null;
     }
-  }, [isEditMode, isScheduledRunning, handleStart, handleStop, activeSchedule]);
-
-  // If activeSchedule becomes null (all disabled), stop the timer if running
-  useEffect(() => {
-    if (!activeSchedule && isScheduledRunning) {
-      handleStop();
-    }
-  }, [activeSchedule, isScheduledRunning, handleStop]);
+  }, [isEditMode]);
 
 
 
@@ -310,7 +288,6 @@ export default function Timer() {
             timeLeft={timeLeft}
             totalTime={15 * 60}
             isCountdown={false}
-            isRunning={isScheduledRunning}
             isAchieved={isAchieved}
             isStarting={timeLeft === null}
           />
@@ -324,276 +301,135 @@ export default function Timer() {
           </button>
         </div>
 
-        {!isScheduledRunning && (
-          <>
-            {!isEditMode ? (
-              // Display-only mode
-              <div className="timer-display-mode">
-                  {schedules.map((s) => {
-                  // Treat undefined (key not set) as true by default
-                  const enabled = enabledMap?.[String(s.seconds)] ?? true;
-                  return (
-                    <button
-                      key={s.first}
-                      type="button"
-                      className={`schedule-btn ${enabled ? 'enabled' : 'disabled'} ${activeSchedule && s.seconds === activeSchedule.seconds ? 'active' : ''}`}
-                      onClick={() => toggleEnabled(s.seconds)}
-                      aria-pressed={enabled}
-                      aria-current={activeSchedule && s.seconds === activeSchedule.seconds ? 'true' : undefined}
-                      aria-label={`${s.first} の有効/無効切替`}
-                    >
-                      <span className="schedule-text">{s.first}</span>
-                      <span className="schedule-indicator" aria-hidden="true">{enabled ? '●' : '○'}</span>
-                    </button>
-                  );
-                })}
-                <div className="timer-display-actions">
-                  <button
-                    onClick={() => setIsEditMode(true)}
-                    className="btn btn-edit"
-                    aria-label="時刻を設定"
-                  >
-                    時刻設定
-                  </button>
-                </div>
-              </div>
-            ) : (
-              // Edit mode - Modal on mobile, inline on desktop
-              <>
-                <div
-                  className="edit-mode-overlay"
-                  aria-hidden="true"
-                  role="presentation"
-                />
-                <div className="timer-edit-modal">
-                  <div className="alarm-selector">
-                    <div className="select-wrapper">
-                      <select
-                        id="alarm-select"
-                        value={selectedAlarm}
-                        onChange={(e) => {
-                          setSelectedAlarm(e.target.value);
-                          // Stop existing preview
-                          if (currentPreviewRef.current) {
-                            currentPreviewRef.current.stop();
-                          }
-                          // Start new preview
-                          const preview = playAlarmPreview(e.target.value);
-                          currentPreviewRef.current = preview;
-                        }}
-                        disabled={isScheduledRunning}
-                        className="alarm-select"
-                        aria-label="アラーム音の種類を選択"
-                      >
-                        <option value="beep">ビープ音</option>
-                        <option value="low">低いビープ音</option>
-                        <option value="phone">電話音</option>
-                        <option value="pulse">パルス音</option>
-                        <option value="ascending">上昇音</option>
-                      </select>
-                    </div>
-                  </div>
-
-                  <div className="timer-input">
-                    {/* Improved accessibility - select-based inputs for easier keyboard + mobile use */}
-                    <div className="time-input-group">
-                      <div className="select-wrapper">
-                        <select
-                          id="hour-select"
-                          className="time-select"
-                          aria-label="時間"
-                          value={targetHour}
-                          onChange={(e) => setTargetHour(String(e.target.value).padStart(2, '0'))}
-                        >
-                          {Array.from({ length: 24 }).map((_, i) => {
-                            const v = String(i).padStart(2, '0');
-                            return <option key={v} value={v}>{v}</option>;
-                          })}
-                        </select>
-                      </div>
-                    </div>
-                    <span className="time-separator" aria-hidden="true">:</span>
-                    <div className="time-input-group">
-                      <div className="select-wrapper">
-                        <select
-                          id="minute-select"
-                          className="time-select"
-                          aria-label="分"
-                          value={targetMinute}
-                          onChange={(e) => setTargetMinute(String(e.target.value).padStart(2, '0'))}
-                        >
-                          {Array.from({ length: 60 }).map((_, i) => {
-                            const v = String(i).padStart(2, '0');
-                            return <option key={v} value={v}>{v}</option>;
-                          })}
-                        </select>
-                      </div>
-                    </div>
-                    <span className="time-separator" aria-hidden="true">:</span>
-                    <div className="time-input-group">
-                      <div className="select-wrapper">
-                        <select
-                          id="second-select"
-                          className="time-select"
-                          aria-label="秒"
-                          value={targetSecond}
-                          onChange={(e) => setTargetSecond(String(e.target.value).padStart(2, '0'))}
-                        >
-                          {Array.from({ length: 60 }).map((_, i) => {
-                            const v = String(i).padStart(2, '0');
-                            return <option key={v} value={v}>{v}</option>;
-                          })}
-                        </select>
-                      </div>
-                    </div>
-                  </div>
-                <div className="timer-input-actions">
-                  <button
-                    onClick={() => setIsEditMode(false)}
-                    className="btn btn-cancel"
-                    aria-label="モーダルを閉じる"
-                  >
-                    閉じる
-                  </button>
-                </div>
-              </div>
-            </>
-            )}
-          </>
-        )}
-
-        {isScheduledRunning && (
-          <>
-            <div className="timer-display-mode">
-              {schedules.map((s) => {
-                const enabled = enabledMap?.[String(s.seconds)] ?? true;
-                return (
-                  <button
-                    key={s.first}
-                    type="button"
-                    className={`schedule-btn ${enabled ? 'enabled' : 'disabled'}`}
-                    onClick={() => toggleEnabled(s.seconds)}
-                    aria-pressed={enabled}
-                    aria-current={activeSchedule && s.seconds === activeSchedule.seconds ? 'true' : undefined}
-                    aria-label={`${s.first} の有効/無効切替`}
-                  >
-                    <span className="schedule-text">{s.first}</span>
-                    <span className="schedule-indicator" aria-hidden="true">{enabled ? '●' : '○'}</span>
-                  </button>
-                );
-              })}
+        <div className="timer-display-mode">
+          {schedules.map((s) => {
+            // Treat undefined (key not set) as true by default
+            const enabled = enabledMap?.[String(s.seconds)] ?? true;
+            return (
               <button
-                onClick={() => setIsEditMode(!isEditMode)}
-                className="btn btn-edit"
-                aria-label="時刻を設定"
+                key={s.first}
+                type="button"
+                className={`schedule-btn ${enabled ? 'enabled' : 'disabled'} ${activeSchedule && s.seconds === activeSchedule.seconds ? 'active' : ''}`}
+                onClick={() => toggleEnabled(s.seconds)}
+                aria-pressed={enabled}
+                aria-current={activeSchedule && s.seconds === activeSchedule.seconds ? 'true' : undefined}
+                aria-label={`${s.first} の有効/無効切替`}
               >
-                時刻設定
+                <span className="schedule-text">{s.first}</span>
+                <span className="schedule-indicator" aria-hidden="true">{enabled ? '●' : '○'}</span>
               </button>
-            </div>
+            );
+          })}
+          <div className="timer-display-actions">
+            <button
+              onClick={() => setIsEditMode(true)}
+              className="btn btn-edit"
+              aria-label="時刻を設定"
+            >
+              時刻設定
+            </button>
+          </div>
+        </div>
 
-            {isEditMode && (
-              <>
-                <div
-                  className="edit-mode-overlay"
-                  aria-hidden="true"
-                  role="presentation"
-                  onClick={() => setIsEditMode(false)}
-                />
-                <div className="timer-edit-modal">
-                  <div className="alarm-selector">
-                    <label htmlFor="alarm-select">アラーム音:</label>
-                    <div className="select-wrapper">
-                      <select
-                        id="alarm-select"
-                        value={selectedAlarm}
-                        onChange={(e) => {
-                          setSelectedAlarm(e.target.value);
-                          // Stop existing preview
-                          if (currentPreviewRef.current) {
-                            currentPreviewRef.current.stop();
-                          }
-                          // Start new preview
-                          const preview = playAlarmPreview(e.target.value);
-                          currentPreviewRef.current = preview;
-                        }}
-                        disabled={isScheduledRunning}
-                        className="alarm-select"
-                        aria-label="アラーム音の種類を選択"
-                      >
-                        <option value="beep">ビープ音</option>
-                        <option value="low">低いビープ音</option>
-                        <option value="phone">電話音</option>
-                        <option value="pulse">パルス音</option>
-                        <option value="ascending">上昇音</option>
-                      </select>
-                    </div>
-                  </div>
+        {isEditMode && (
+          <>
+            <div
+              className="edit-mode-overlay"
+              aria-hidden="true"
+              role="presentation"
+              onClick={() => setIsEditMode(false)}
+            />
+            <div className="timer-edit-modal">
+              <div className="alarm-selector">
+                <div className="select-wrapper">
+                  <select
+                    id="alarm-select"
+                    value={selectedAlarm}
+                    onChange={(e) => {
+                      setSelectedAlarm(e.target.value);
+                      // Stop existing preview
+                      if (currentPreviewRef.current) {
+                        currentPreviewRef.current.stop();
+                      }
+                      // Start new preview
+                      const preview = playAlarmPreview(e.target.value);
+                      currentPreviewRef.current = preview;
+                    }}
+                    className="alarm-select"
+                    aria-label="アラーム音の種類を選択"
+                  >
+                    <option value="beep">ビープ音</option>
+                    <option value="low">低いビープ音</option>
+                    <option value="phone">電話音</option>
+                    <option value="pulse">パルス音</option>
+                    <option value="ascending">上昇音</option>
+                  </select>
+                </div>
+              </div>
 
-                    <div className="timer-input">
-                      {/* Improved accessibility - select-based inputs for easier keyboard + mobile use */}
-                      <div className="time-input-group">
-                        <div className="select-wrapper">
-                          <select
-                            id="hour-select-running"
-                            className="time-select"
-                            aria-label="時間"
-                            value={targetHour}
-                            onChange={(e) => setTargetHour(String(e.target.value).padStart(2, '0'))}
-                          >
-                            {Array.from({ length: 24 }).map((_, i) => {
-                              const v = String(i).padStart(2, '0');
-                              return <option key={v} value={v}>{v}</option>;
-                            })}
-                          </select>
-                        </div>
-                      </div>
-                      <span className="time-separator" aria-hidden="true">:</span>
-                      <div className="time-input-group">
-                        <div className="select-wrapper">
-                          <select
-                            id="minute-select-running"
-                            className="time-select"
-                            aria-label="分"
-                            value={targetMinute}
-                            onChange={(e) => setTargetMinute(String(e.target.value).padStart(2, '0'))}
-                          >
-                            {Array.from({ length: 60 }).map((_, i) => {
-                              const v = String(i).padStart(2, '0');
-                              return <option key={v} value={v}>{v}</option>;
-                            })}
-                          </select>
-                        </div>
-                      </div>
-                      <span className="time-separator" aria-hidden="true">:</span>
-                      <div className="time-input-group">
-                        <div className="select-wrapper">
-                          <select
-                            id="second-select-running"
-                            className="time-select"
-                            aria-label="秒"
-                            value={targetSecond}
-                            onChange={(e) => setTargetSecond(String(e.target.value).padStart(2, '0'))}
-                          >
-                            {Array.from({ length: 60 }).map((_, i) => {
-                              const v = String(i).padStart(2, '0');
-                              return <option key={v} value={v}>{v}</option>;
-                            })}
-                          </select>
-                        </div>
-                      </div>
-                    </div>
-                  <div className="timer-input-actions">
-                    <button
-                      onClick={() => setIsEditMode(false)}
-                      className="btn btn-cancel"
-                      aria-label="編集をキャンセル"
+              <div className="timer-input">
+                {/* Improved accessibility - select-based inputs for easier keyboard + mobile use */}
+                <div className="time-input-group">
+                  <div className="select-wrapper">
+                    <select
+                      id="hour-select"
+                      className="time-select"
+                      aria-label="時間"
+                      value={targetHour}
+                      onChange={(e) => setTargetHour(String(e.target.value).padStart(2, '0'))}
                     >
-                      閉じる
-                    </button>
+                      {Array.from({ length: 24 }).map((_, i) => {
+                        const v = String(i).padStart(2, '0');
+                        return <option key={v} value={v}>{v}</option>;
+                      })}
+                    </select>
                   </div>
                 </div>
-            </>
-            )}
+                <span className="time-separator" aria-hidden="true">:</span>
+                <div className="time-input-group">
+                  <div className="select-wrapper">
+                    <select
+                      id="minute-select"
+                      className="time-select"
+                      aria-label="分"
+                      value={targetMinute}
+                      onChange={(e) => setTargetMinute(String(e.target.value).padStart(2, '0'))}
+                    >
+                      {Array.from({ length: 60 }).map((_, i) => {
+                        const v = String(i).padStart(2, '0');
+                        return <option key={v} value={v}>{v}</option>;
+                      })}
+                    </select>
+                  </div>
+                </div>
+                <span className="time-separator" aria-hidden="true">:</span>
+                <div className="time-input-group">
+                  <div className="select-wrapper">
+                    <select
+                      id="second-select"
+                      className="time-select"
+                      aria-label="秒"
+                      value={targetSecond}
+                      onChange={(e) => setTargetSecond(String(e.target.value).padStart(2, '0'))}
+                    >
+                      {Array.from({ length: 60 }).map((_, i) => {
+                        const v = String(i).padStart(2, '0');
+                        return <option key={v} value={v}>{v}</option>;
+                      })}
+                    </select>
+                  </div>
+                </div>
+              </div>
+              <div className="timer-input-actions">
+                <button
+                  onClick={() => setIsEditMode(false)}
+                  className="btn btn-cancel"
+                  aria-label="モーダルを閉じる"
+                >
+                  閉じる
+                </button>
+              </div>
+            </div>
           </>
         )}
 

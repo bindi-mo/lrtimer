@@ -31,10 +31,6 @@ describe('useScheduledTimer notifications', () => {
 
     const { result } = renderHook(() => useScheduledTimer(targetHour, targetMinute, targetSecond, 'phone'));
 
-    act(() => {
-      result.current.handleStart();
-    });
-
     // 3秒進めて 902 -> 899 秒にし、15分未満へ突入させる
     act(() => {
       vi.advanceTimersByTime(3000);
@@ -58,10 +54,6 @@ describe('useScheduledTimer notifications', () => {
     const playSpy = vi.spyOn(alarmSounds, 'playAlarmSound').mockImplementation(() => {});
 
     const { result } = renderHook(() => useScheduledTimer(targetHour, targetMinute, targetSecond, 'phone'));
-
-    act(() => {
-      result.current.handleStart();
-    });
 
     // 閾値を越えて通知が出る（再生は短時間繰り返される）
     act(() => { vi.advanceTimersByTime(3000); });

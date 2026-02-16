@@ -1,9 +1,6 @@
-import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import { playAlarmSound } from '../utils/alarmSounds';
 import { calculateTargetTimeInSeconds, calculateTimeLeft } from '../utils/timeUtils';
-
-// Constants for time calculations
-const TWELVE_HOURS = 12 * 3600;
 
 // Notification threshold constants
 const NOTIFICATION_THRESHOLDS = {
@@ -18,18 +15,14 @@ const NOTIFICATION_THRESHOLDS = {
 };
 
 export const useScheduledTimer = (targetHour, targetMinute, targetSecond, alarmType = 'phone') => {
-  const [scheduledTimeLeft, setScheduledTimeLeft] = useState(0);
-  const [isScheduledRunning, setIsScheduledRunning] = useState(false);
-  const [isAchieved, setIsAchieved] = useState(false);
-  const [showModal, setShowModal] = useState(false);
-
-  // 開始前の残り時間を計算
-  const initialTimeLeft = useMemo(() => {
+  const [scheduledTimeLeft, setScheduledTimeLeft] = useState(() => {
     const now = new Date();
     const timeInSeconds = now.getHours() * 3600 + now.getMinutes() * 60 + now.getSeconds();
     const targetInSeconds = calculateTargetTimeInSeconds(targetHour, targetMinute, targetSecond);
     return calculateTimeLeft(targetInSeconds, timeInSeconds);
-  }, [targetHour, targetMinute, targetSecond]);
+  });
+  const [isAchieved, setIsAchieved] = useState(false);
+  const [showModal, setShowModal] = useState(false);
 
   const notificationRef = useRef({
     prev15min: null,
@@ -111,13 +104,12 @@ export const useScheduledTimer = (targetHour, targetMinute, targetSecond, alarmT
     setShowModal(false);
   };
 
-  const handleStart = () => {
-    // Fixed: Add error handling for Notification permission denials
+  // Initialize notification permission and state on mount/target changes
+  useEffect(() => {
     if ('Notification' in window) {
       if (Notification.permission === 'granted') {
         notificationRef.current.permission = true;
       } else if (Notification.permission !== 'denied') {
-        // Request permission only if user hasn't made a choice yet
         Notification.requestPermission()
           .then((permission) => {
             notificationRef.current.permission = permission === 'granted';
@@ -127,7 +119,6 @@ export const useScheduledTimer = (targetHour, targetMinute, targetSecond, alarmT
             notificationRef.current.permission = false;
           });
       } else {
-        // ユーザーが拒否している
         notificationRef.current.permission = false;
       }
     } else {
@@ -135,7 +126,6 @@ export const useScheduledTimer = (targetHour, targetMinute, targetSecond, alarmT
       notificationRef.current.permission = false;
     }
 
-    // prevDiff は開始時点の差分で初期化（直前に過ぎているだけの場合には即時トリガーしないため）
     const now = new Date();
     const timeInSeconds = now.getHours() * 3600 + now.getMinutes() * 60 + now.getSeconds();
     const targetInSeconds = calculateTargetTimeInSeconds(targetHour, targetMinute, targetSecond);
@@ -148,12 +138,7 @@ export const useScheduledTimer = (targetHour, targetMinute, targetSecond, alarmT
       permission: notificationRef.current.permission,
       isFirstUpdate: false,
     };
-    setIsScheduledRunning(true);
-  };
-
-  const handleStop = () => {
-    setIsScheduledRunning(false);
-  };
+  }, [targetHour, targetMinute, targetSecond]);
 
   // Cleanup on component unmount
   useEffect(() => {
@@ -177,121 +162,94 @@ export const useScheduledTimer = (targetHour, targetMinute, targetSecond, alarmT
     };
   }, []);
 
-  // Update time remaining before timer starts
-  useEffect(() => {
-    if (!isScheduledRunning) {
-      // Defer initial calculation to next tick (after mount)
-      const initialTimeout = setTimeout(() => {
-        const now = new Date();
-        const timeInSeconds = now.getHours() * 3600 + now.getMinutes() * 60 + now.getSeconds();
-        const targetInSeconds = calculateTargetTimeInSeconds(targetHour, targetMinute, targetSecond);
-        const newTimeLeft = calculateTimeLeft(targetInSeconds, timeInSeconds);
-        setScheduledTimeLeft(newTimeLeft);
-      }, 0);
-
-      const interval = setInterval(() => {
-        const now = new Date();
-        const timeInSeconds = now.getHours() * 3600 + now.getMinutes() * 60 + now.getSeconds();
-        const targetInSeconds = calculateTargetTimeInSeconds(targetHour, targetMinute, targetSecond);
-        const newTimeLeft = calculateTimeLeft(targetInSeconds, timeInSeconds);
-        setScheduledTimeLeft(newTimeLeft);
-      }, 1000);
-      return () => {
-        clearTimeout(initialTimeout);
-        clearInterval(interval);
-      };
-    }
-  }, [isScheduledRunning, targetHour, targetMinute, targetSecond]);
-
   // Scheduled timer
   useEffect(() => {
-    let interval;
+    const update = () => {
+      const now = new Date();
+      const timeInSeconds = now.getHours() * 3600 + now.getMinutes() * 60 + now.getSeconds();
+      const targetInSeconds = calculateTargetTimeInSeconds(targetHour, targetMinute, targetSecond);
 
-    if (isScheduledRunning) {
-      interval = setInterval(() => {
-        const now = new Date();
-        const timeInSeconds = now.getHours() * 3600 + now.getMinutes() * 60 + now.getSeconds();
-        const targetInSeconds = calculateTargetTimeInSeconds(targetHour, targetMinute, targetSecond);
+      const secondsLeft = calculateTimeLeft(targetInSeconds, timeInSeconds);
 
-        const secondsLeft = calculateTimeLeft(targetInSeconds, timeInSeconds);
+      // 秒数を更新（isAchievedでも更新する）
+      setScheduledTimeLeft(secondsLeft);
 
-        // 秒数を更新（isAchievedでも更新する）
-        setScheduledTimeLeft(secondsLeft);
+      // 15分前の通知をトリガー
+      if (
+        secondsLeft <= NOTIFICATION_THRESHOLDS.FIFTEEN_MIN &&
+        notificationRef.current.prev15min !== NOTIFICATION_THRESHOLDS.PRE_15_TARGET
+      ) {
+        notificationRef.current.prev15min = NOTIFICATION_THRESHOLDS.PRE_15_TARGET;
+        setShowModal(true);
+        // 設定されたアラーム音で再生（短時間）
+        startAlarmForDuration(NOTIFICATION_THRESHOLDS.ALARM_DURATION, alarmType, '15分前です');
+      }
 
-        // 15分前の通知をトリガー
-        if (
-          secondsLeft <= NOTIFICATION_THRESHOLDS.FIFTEEN_MIN &&
-          notificationRef.current.prev15min !== NOTIFICATION_THRESHOLDS.PRE_15_TARGET
-        ) {
-          notificationRef.current.prev15min = NOTIFICATION_THRESHOLDS.PRE_15_TARGET;
-          setShowModal(true);
-          // 設定されたアラーム音で再生（短時間）
-          startAlarmForDuration(NOTIFICATION_THRESHOLDS.ALARM_DURATION, alarmType, '15分前です');
+      // 5分前の通知をトリガー
+      if (
+        secondsLeft <= NOTIFICATION_THRESHOLDS.FIVE_MIN &&
+        notificationRef.current.prev5min !== NOTIFICATION_THRESHOLDS.PRE_5_TARGET
+      ) {
+        notificationRef.current.prev5min = NOTIFICATION_THRESHOLDS.PRE_5_TARGET;
+        setShowModal(true);
+        startAlarmForDuration(NOTIFICATION_THRESHOLDS.ALARM_DURATION, alarmType, '5分前です');
+      }
+
+      // 目標時刻に到達したらisAchievedをtrueにする（横切り検出でのみトリガー）
+      const diff = targetInSeconds - timeInSeconds;
+      const prevDiff = notificationRef.current.prevDiff ?? Number.POSITIVE_INFINITY;
+      // トリガーは「前回は正、今回が0以下」のときのみ（＝時刻を横切った瞬間）に限定
+      if (prevDiff > 0 && diff <= 0 && notificationRef.current.prevFinal !== NOTIFICATION_THRESHOLDS.COMPLETION) {
+        notificationRef.current.prevFinal = NOTIFICATION_THRESHOLDS.COMPLETION;
+        setIsAchieved(true);
+
+        if (animationTimeoutRef.current) {
+          clearTimeout(animationTimeoutRef.current);
         }
+        animationTimeoutRef.current = setTimeout(() => {
+          setIsAchieved(false);
+          notificationRef.current = {
+            prev15min: NOTIFICATION_THRESHOLDS.PRE_15_TARGET,
+            prev5min: NOTIFICATION_THRESHOLDS.PRE_5_TARGET,
+            prevFinal: NOTIFICATION_THRESHOLDS.COMPLETION,
+            prevSecondsLeft: null,
+            prevDiff: null,
+          };
 
-        // 5分前の通知をトリガー
-        if (
-          secondsLeft <= NOTIFICATION_THRESHOLDS.FIVE_MIN &&
-          notificationRef.current.prev5min !== NOTIFICATION_THRESHOLDS.PRE_5_TARGET
-        ) {
-          notificationRef.current.prev5min = NOTIFICATION_THRESHOLDS.PRE_5_TARGET;
-          setShowModal(true);
-          startAlarmForDuration(NOTIFICATION_THRESHOLDS.ALARM_DURATION, alarmType, '5分前です');
-        }
-
-        // 目標時刻に到達したらisAchievedをtrueにする（横切り検出でのみトリガー）
-        const diff = targetInSeconds - timeInSeconds;
-        const prevDiff = notificationRef.current.prevDiff ?? Number.POSITIVE_INFINITY;
-        // トリガーは「前回は正、今回が0以下」のときのみ（＝時刻を横切った瞬間）に限定
-        if (prevDiff > 0 && diff <= 0 && notificationRef.current.prevFinal !== NOTIFICATION_THRESHOLDS.COMPLETION) {
-          notificationRef.current.prevFinal = NOTIFICATION_THRESHOLDS.COMPLETION;
-          setIsAchieved(true);
-
-          if (animationTimeoutRef.current) {
-            clearTimeout(animationTimeoutRef.current);
+          // 5分待機してから次サイクルの差分を初期化
+          if (autoRestartTimeoutRef.current) {
+            clearTimeout(autoRestartTimeoutRef.current);
           }
-          animationTimeoutRef.current = setTimeout(() => {
-            setIsAchieved(false);
+          autoRestartTimeoutRef.current = setTimeout(() => {
+            const restartNow = new Date();
+            const restartSeconds = restartNow.getHours() * 3600 + restartNow.getMinutes() * 60 + restartNow.getSeconds();
+            const restartTarget = calculateTargetTimeInSeconds(targetHour, targetMinute, targetSecond);
             notificationRef.current = {
-              prev15min: NOTIFICATION_THRESHOLDS.PRE_15_TARGET,
-              prev5min: NOTIFICATION_THRESHOLDS.PRE_5_TARGET,
-              prevFinal: NOTIFICATION_THRESHOLDS.COMPLETION,
+              prev15min: null,
+              prev5min: null,
+              prevFinal: null,
               prevSecondsLeft: null,
-              prevDiff: null,
+              prevDiff: restartTarget - restartSeconds,
+              permission: notificationRef.current.permission,
+              isFirstUpdate: false,
             };
+          }, NOTIFICATION_THRESHOLDS.AUTO_RESTART_DELAY * 1000);
+        }, NOTIFICATION_THRESHOLDS.ACHIEVEMENT_DISPLAY * 1000);
+      }
 
-          // Fixed: Add cleanup for setTimeout/setInterval on component unmount
-            // 5分待機してから自動開始
-            if (autoRestartTimeoutRef.current) {
-              clearTimeout(autoRestartTimeoutRef.current);
-            }
-            autoRestartTimeoutRef.current = setTimeout(() => {
-              setIsScheduledRunning(false);
-              if (autoRestartStartTimeoutRef.current) {
-                clearTimeout(autoRestartStartTimeoutRef.current);
-              }
-              autoRestartStartTimeoutRef.current = setTimeout(() => {
-                handleStart();
-              }, 100);
-            }, NOTIFICATION_THRESHOLDS.AUTO_RESTART_DELAY * 1000);
-          }, NOTIFICATION_THRESHOLDS.ACHIEVEMENT_DISPLAY * 1000);
-        }
+      // diff を保存して次回判定に使う
+      notificationRef.current.prevDiff = diff;
+    };
 
-        // diff を保存して次回判定に使う
-        notificationRef.current.prevDiff = diff;
-      }, 1000);
-    }
-
+    update();
+    const interval = setInterval(update, 1000);
     return () => clearInterval(interval);
-  }, [isScheduledRunning, targetHour, targetMinute, targetSecond, isAchieved, startAlarmForDuration]);
+  }, [targetHour, targetMinute, targetSecond, isAchieved, startAlarmForDuration]);
 
   return {
-    scheduledTimeLeft: isScheduledRunning ? scheduledTimeLeft : initialTimeLeft,
-    isScheduledRunning,
+    scheduledTimeLeft,
     isAchieved,
     showModal,
-    handleStart,
-    handleStop,
     handleModalOk,
   };
 };

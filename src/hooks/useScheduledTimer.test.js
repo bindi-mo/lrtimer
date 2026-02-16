@@ -16,46 +16,8 @@ describe('useScheduledTimer', () => {
     expect(result.current.scheduledTimeLeft).toBeGreaterThan(0);
   });
 
-  it('should start timer', () => {
-    const { result } = renderHook(() => useScheduledTimer('19', '00', '00'));
-
-    act(() => {
-      result.current.handleStart();
-    });
-
-    expect(result.current.isScheduledRunning).toBe(true);
-  });
-
-  it('should stop timer', () => {
-    const { result } = renderHook(() => useScheduledTimer('19', '00', '00'));
-
-    act(() => {
-      result.current.handleStart();
-    });
-
-    expect(result.current.isScheduledRunning).toBe(true);
-
-    act(() => {
-      result.current.handleStop();
-    });
-
-    expect(result.current.isScheduledRunning).toBe(false);
-  });
-
-  it('should return initial time when not running', () => {
-    const { result } = renderHook(() => useScheduledTimer('19', '00', '00'));
-    const initialTime = result.current.scheduledTimeLeft;
-
-    expect(result.current.isScheduledRunning).toBe(false);
-    expect(result.current.scheduledTimeLeft).toBe(initialTime);
-  });
-
   it('should set isAchieved to true when reaching target time', async () => {
     const { result } = renderHook(() => useScheduledTimer('19', '00', '00'));
-
-    act(() => {
-      result.current.handleStart();
-    });
 
     // すぐに達成状態になることはないので、初期値を確認
     expect(result.current.isAchieved).toBe(false);
@@ -83,10 +45,6 @@ describe('useScheduledTimer', () => {
 
     const { result } = renderHook(() => useScheduledTimer(targetHour, targetMinute, targetSecond));
 
-    act(() => {
-      result.current.handleStart();
-    });
-
     // 開始直後は isAchieved にならない（既に過ぎているだけではトリガーしない）
     expect(result.current.isAchieved).toBe(false);
 
@@ -108,10 +66,6 @@ describe('useScheduledTimer', () => {
     const targetSecond = String(targetSeconds % 60);
 
     const { result } = renderHook(() => useScheduledTimer(targetHour, targetMinute, targetSecond));
-
-    act(() => {
-      result.current.handleStart();
-    });
 
     // 1秒経過させて横切りさせる
     act(() => vi.advanceTimersByTime(1500));
