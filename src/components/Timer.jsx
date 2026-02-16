@@ -138,6 +138,20 @@ export default function Timer() {
     }
   }, [enabledMap]);
 
+  // Update enabledMap when schedules change to include new schedule keys
+  useEffect(() => {
+    setEnabledMap((prev) => {
+      const next = { ...prev };
+      schedules.forEach((s) => {
+        const k = String(s.seconds);
+        if (!(k in next)) {
+          next[k] = true;
+        }
+      });
+      return next;
+    });
+  }, [schedules]);
+
   // Toggle enabled state (keeps existing behavior for toggling)
   const toggleEnabled = (seconds) => {
     const k = String(seconds);

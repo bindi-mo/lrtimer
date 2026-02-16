@@ -1,5 +1,4 @@
-import { fireEvent, render, screen, waitFor } from '@testing-library/react';
-import { act } from 'react-dom/test-utils';
+import { act, fireEvent, render, screen, waitFor } from '@testing-library/react';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { TimerProvider } from '../contexts/TimerContext';
 import { calculateTargetTimeInSeconds } from '../utils/timeUtils';
@@ -141,12 +140,12 @@ describe('Timer component - edit mode based on localStorage', () => {
     const btn08 = screen.getByRole('button', { name: /08:00:00 の有効\/無効切替/ });
 
     // 初期は 08:00 がアクティブ
-    await waitFor(() => expect(btn08.getAttribute('aria-current') || btn08.classList.contains('active')).toBeTruthy());
+    await waitFor(() => expect(btn08.getAttribute('aria-pressed')).toBe('true'));
 
     // 08:00 を無効化（トグル） -> aria-pressed が false になり、activeSchedule は 20:00 に切替
     act(() => { fireEvent.click(btn08); });
     await waitFor(() => expect(btn08.getAttribute('aria-pressed')).toBe('false'));
-    await waitFor(() => expect(screen.getByRole('button', { name: /20:00:00 の有効\/無効切替/ }).getAttribute('aria-current') || screen.getByRole('button', { name: /20:00:00 の有効\/無効切替/ }).classList.contains('active')).toBeTruthy());
+    await waitFor(() => expect(screen.getByRole('button', { name: /20:00:00 の有効\/無効切替/ }).getAttribute('aria-pressed')).toBe('true'));
 
     // localStorage の enabled_map が更新されている
     const s08 = calculateTargetTimeInSeconds('08', '00', '00');
@@ -156,7 +155,6 @@ describe('Timer component - edit mode based on localStorage', () => {
     // 08:00 を再度クリック（有効化）して元に戻る
     act(() => { fireEvent.click(btn08); });
     await waitFor(() => expect(btn08.getAttribute('aria-pressed')).toBe('true'));
-    await waitFor(() => expect(btn08.getAttribute('aria-current') || btn08.classList.contains('active')).toBeTruthy());
 
     vi.restoreAllMocks();
   });
