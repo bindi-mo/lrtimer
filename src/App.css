@@ -43,6 +43,7 @@ body {
   min-height: 100vh;
   display: flex;
   flex-direction: column;
+  justify-content: flex-start;
   background-color: var(--bg-color);
   color: var(--text-color);
   transition: background-color 0.3s ease, color 0.3s ease;
@@ -99,5 +100,5 @@ main {
   display: flex;
   justify-content: center;
   align-items: center;
-  padding: 2rem;
+  padding: 0;
 }

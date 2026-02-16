@@ -106,12 +106,13 @@ html[data-theme='light'] {
   display: flex;
   flex-direction: column;
   align-items: center;
-  justify-content: center;
-  min-height: 100vh;
+  justify-content: flex-start;
   width: 100%;
   padding: 0;
   font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
   gap: 20px;
+  margin-left: var(--spacing-xxl);
+  margin-right: var(--spacing-xxl);
 }
 
 .timer-container h1 {
@@ -139,7 +140,7 @@ html[data-theme='light'] {
 
 .date-display {
   color: var(--primary-color);
-  font-size: var(--font-size-xs);
+  font-size: var(--font-size-regular);
   opacity: var(--opacity-secondary);
   letter-spacing: 0.5px;
   position: relative;
@@ -153,8 +154,10 @@ html[data-theme='light'] {
     display: grid;
     grid-template-columns: 1fr 1fr;
     grid-template-rows: auto auto;
-    gap: 20px;
+    gap: 30px;
     place-items: center center;
+    margin-left: var(--spacing-xxl);
+    margin-right: var(--spacing-xxl);
   }
 
   .date-display {
@@ -180,7 +183,8 @@ html[data-theme='light'] {
   position: relative;
   width: var(--progress-size);
   height: var(--progress-size);
-  margin-bottom: var(--spacing-xl);
+  margin-left: var(--spacing-xxl);
+  margin-right: var(--spacing-xxl);
 }
 
 .progress-svg {
@@ -552,7 +556,7 @@ html[data-theme='light'] {
 @media (width >= 800px) {
   .timer-mode {
     flex-direction: row;
-    align-items: flex-start;
+    align-items: center;
     gap: var(--spacing-xxl);
     justify-content: center;
   }
@@ -579,7 +583,7 @@ html[data-theme='light'] {
 @media (width <= 600px) {
   .timer-container h1 {
     font-size: var(--font-size-title-mobile);
-    margin-bottom: var(--spacing-lg);
+    margin-left: var(--spacing-lg);
   }
 
   .timer-display,
