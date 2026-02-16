@@ -14,7 +14,7 @@ const NOTIFICATION_THRESHOLDS = {
   ACHIEVEMENT_DISPLAY: 10,     // Duration to display achievement in seconds
 };
 
-export const useScheduledTimer = (targetHour, targetMinute, targetSecond, alarmType = 'phone') => {
+export const useScheduledTimer = (targetHour, targetMinute, targetSecond, alarmType = 'phone', isEditMode = false) => {
   const [scheduledTimeLeft, setScheduledTimeLeft] = useState(() => {
     const now = new Date();
     const timeInSeconds = now.getHours() * 3600 + now.getMinutes() * 60 + now.getSeconds();
@@ -169,6 +169,8 @@ export const useScheduledTimer = (targetHour, targetMinute, targetSecond, alarmT
 
   // Scheduled timer
   useEffect(() => {
+    if (isEditMode) return; // 編集中はタイマーを動かさない
+
     const update = () => {
       const now = new Date();
       const timeInSeconds = now.getHours() * 3600 + now.getMinutes() * 60 + now.getSeconds();
@@ -249,7 +251,7 @@ export const useScheduledTimer = (targetHour, targetMinute, targetSecond, alarmT
     update();
     const interval = setInterval(update, 1000);
     return () => clearInterval(interval);
-  }, [targetHour, targetMinute, targetSecond, isAchieved, startAlarmForDuration, alarmType]);
+  }, [targetHour, targetMinute, targetSecond, isAchieved, startAlarmForDuration, alarmType, isEditMode]);
 
   return {
     scheduledTimeLeft,

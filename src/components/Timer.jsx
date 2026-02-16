@@ -176,11 +176,16 @@ export default function Timer() {
 
   // From enabled schedules, select the one closest to the current time (next occurrence within 24 hours)
   // Returns null if all are disabled
-  const activeSchedule = useMemo(() => {
+  const [activeSchedule, setActiveSchedule] = useState(null);
+
+  useEffect(() => {
     const now = new Date();
     const nowSec = now.getHours() * 3600 + now.getMinutes() * 60 + now.getSeconds();
     const enabled = schedules.filter((s) => (enabledMap ? enabledMap[String(s.seconds)] : true));
-    if (enabled.length === 0) return null;
+    if (enabled.length === 0) {
+      setActiveSchedule(null);
+      return;
+    }
 
     const candidates = enabled;
     let best = candidates[0];
@@ -199,7 +204,7 @@ export default function Timer() {
       }
     });
 
-    return best;
+    setActiveSchedule(best);
   }, [schedules, enabledMap]);
 
   const [activeHour, activeMinute, activeSecond] = useMemo(() => {
@@ -213,7 +218,30 @@ export default function Timer() {
     isAchieved,
     showModal,
     handleModalOk,
-  } = useScheduledTimer(activeHour, activeMinute, activeSecond, selectedAlarm);
+  } = useScheduledTimer(activeHour, activeMinute, activeSecond, selectedAlarm, isEditMode);
+
+  // When achieved, move to next enabled schedule
+  useEffect(() => {
+    if (isAchieved && activeSchedule) {
+      const enabled = schedules.filter((s) => (enabledMap ? enabledMap[String(s.seconds)] : true));
+      if (enabled.length === 0) return;
+
+      const currentIndex = schedules.findIndex(s => s.seconds === activeSchedule.seconds);
+      if (currentIndex === -1) return;
+
+      let nextIndex = (currentIndex + 1) % schedules.length;
+      let nextSchedule = schedules[nextIndex];
+      let attempts = 0;
+      while (!enabledMap[String(nextSchedule.seconds)] && attempts < schedules.length) {
+        nextIndex = (nextIndex + 1) % schedules.length;
+        nextSchedule = schedules[nextIndex];
+        attempts++;
+      }
+      if (enabledMap[String(nextSchedule.seconds)]) {
+        setActiveSchedule(nextSchedule);
+      }
+    }
+  }, [isAchieved, activeSchedule, schedules, enabledMap]);
 
   // Stop preview sound when edit modal closes
   useEffect(() => {
@@ -278,6 +306,7 @@ export default function Timer() {
               timeLeft={timeLeft}
               totalTime={15 * 60}
               isCountdown={false}
+              isRunning={!!activeSchedule}
               isAchieved={isAchieved}
               isStarting={timeLeft === null}
               onClick={() => setIsEditMode(true)}
