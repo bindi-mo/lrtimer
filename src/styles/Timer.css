@@ -571,10 +571,6 @@ html[data-theme='dark'] .schedule-btn.enabled {
   border-color: rgb(255 255 255 / 18%);
 }
 
-html[data-theme='dark'] .schedule-btn.active {
-  border-color: rgb(100 181 246 / 90%); /* keep accent visible when active */
-}
-
 /* Dark theme: slightly darker border for disabled state */
 html[data-theme='dark'] .schedule-btn.disabled {
   border-color: rgb(255 255 255 / 8%); /* increased from 4% to 8% for better visibility */
@@ -821,12 +817,6 @@ html[data-theme='dark'] .alarm-select option {
   border-color: rgb(0 0 0 / 12%);
   opacity: 1;
   box-shadow: 0 1px 0 rgb(0 0 0 / 4%);
-}
-
-.schedule-btn.active {
-  border-color: var(--primary-color);
-  box-shadow: 0 2px 8px rgb(100 181 246 / 12%);
-  transform: translateY(-1px);
 }
 
 .schedule-btn.disabled {

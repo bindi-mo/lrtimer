@@ -309,10 +309,9 @@ export default function Timer() {
               <button
                 key={s.first}
                 type="button"
-                className={`schedule-btn ${enabled ? 'enabled' : 'disabled'} ${activeSchedule && s.seconds === activeSchedule.seconds ? 'active' : ''}`}
+                className={`schedule-btn ${enabled ? 'enabled' : 'disabled'}`}
                 onClick={() => toggleEnabled(s.seconds)}
                 aria-pressed={enabled}
-                aria-current={activeSchedule && s.seconds === activeSchedule.seconds ? 'true' : undefined}
                 aria-label={`${s.first} の有効/無効切替`}
               >
                 <span className="schedule-text">{s.first}</span>
