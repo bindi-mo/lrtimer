@@ -297,7 +297,7 @@ export default function Timer() {
       <div className="date-display">
         {new Date().toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric', year: 'numeric' })}
       </div>
-      <h1>🕐 カウントダウンタイマー</h1>
+      <h1>🕐 １２時間周期</h1>
 
       <div className="timer-mode">
         <div className="timer-header">
